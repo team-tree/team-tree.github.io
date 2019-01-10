@@ -1,4 +1,13 @@
 /*
+Cem Alemdar
+Team Tree
+Mod 1: Changed grid size to 6 by 5
+Mod 2: created arrays of words to fit in the grid
+Mod 3: Displayed the words as individual glyphs on the beads
+Mod 4: The color of the beads are picked randomly out of an array of colors
+Mod 5: The size of the glyphs depend on the length of the words
+
+/*
 game.js for Perlenspiel 3.3.x
 Last revision: 2018-10-14 (BM)
 
