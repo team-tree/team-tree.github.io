@@ -7,6 +7,12 @@ Mod 3: Displayed the words as individual glyphs on the beads
 Mod 4: The color of the beads are picked randomly out of an array of colors
 Mod 5: The size of the glyphs depend on the length of the words
 
+*I added a new cover.png file but it seems to not work properly on github for some reason*
+
+you can check out the files driectly at:
+
+https://github.com/team-tree/team-tree.github.io/tree/master/cems_mod
+
 /*
 game.js for Perlenspiel 3.3.x
 Last revision: 2018-10-14 (BM)
