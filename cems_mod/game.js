@@ -123,7 +123,7 @@ PS.touch = function( x, y, data, options ) {
 	for(var i = 0; i < current_word.length; i++){
 		var rand = Math.floor((Math.random() * 15)%6);
 		var glyph_size = (current_word.length / 3) * 50;
-		PS.debug(rand + "\n");
+		//PS.debug(rand + "\n");
 
 		PS.glyph(x, y, current_word.charAt(i));
 		PS.glyphScale(x, y, glyph_size);
