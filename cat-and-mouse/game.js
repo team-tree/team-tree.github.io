@@ -25,18 +25,42 @@ var MOUSE = {
     // Moves the mouse by one square if there is a blank square around it
     move : function(new_x, new_y, old_x, old_y){
         "use strict";
+
+        if (PS.data(new_x, new_y) === MOUSE.FLOOR_COLOR) {
+            // delete mouse
+            PS.data(old_x, old_y, MOUSE.FLOOR_COLOR);
+            PS.color(old_x, old_y, MOUSE.FLOOR_COLOR);
+            // replace mouse
+            PS.data(new_x, new_y, MOUSE.FLOOR_COLOR);
+            PS.color(new_x, new_y, MOUSE.FLOOR_COLOR);
+        }
     },
 
     reproduce : function(x, y){
         "use strict";
+
+        for (var i = y - 1; i < y + 2; i++) {
+            for (var j = x - 1; j < x + 2; j++) {
+                if (PS.data(j, i) === MOUSE.FLOOR_COLOR) {
+                    PS.data(x + 1, y + 1, MOUSE.MOUSE_COLOR);
+                    PS.color(x + 1, y + 1, MOUSE.MOUSE_COLOR);
+                }
+
+            }
+        }
+
+
     },
 
     born : function(x, y){
         "use strict";
+
     },
 
     tick : function(){
         "use strict";
+        //while ()
+        //MOUSE.reproduce()
     }
 }
 
@@ -134,13 +158,24 @@ PS.init = function( system, options ) {
     PS.color(PS.ALL, PS.ALL, MOUSE.FLOOR_COLOR);
     PS.data(PS.ALL, PS.ALL, MOUSE.FLOOR_COLOR);
 
-	// This is also a good place to display
+    // Mouse 1
+    PS.data(MOUSE.GRID_LENGTH - 3, MOUSE.GRID_HEIGHT - 2, MOUSE.MOUSE_COLOR );
+    PS.color(MOUSE.GRID_LENGTH - 3, MOUSE.GRID_HEIGHT - 2, MOUSE.MOUSE_COLOR );
+    // Mouse 2
+    PS.data(MOUSE.GRID_LENGTH - 4, MOUSE.GRID_HEIGHT - 6, MOUSE.MOUSE_COLOR );
+    PS.color(MOUSE.GRID_LENGTH - 4, MOUSE.GRID_HEIGHT - 6, MOUSE.MOUSE_COLOR );
+    // Mouse 3
+    PS.data(MOUSE.GRID_LENGTH - 8, MOUSE.GRID_HEIGHT - 4, MOUSE.MOUSE_COLOR );
+    PS.color(MOUSE.GRID_LENGTH - 8, MOUSE.GRID_HEIGHT - 4, MOUSE.MOUSE_COLOR );
+
+
+    // This is also a good place to display
 	// your game title or a welcome message
 	// in the status line above the grid.
 	// Uncomment the following code line and
 	// change the string parameter as needed.
 
-    PS.statusText( "Click a square to drop cat" );
+    PS.statusText( "Click a square to drop cat." );
 
 	// Add any other initialization code you need here.
 };
@@ -163,6 +198,8 @@ This function doesn't have to do anything. Any value returned is ignored.
 
 PS.touch = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
+
+
 
     // Create cat and change color of the bead
     CAT.born(x, y);
@@ -224,6 +261,7 @@ This function doesn't have to do anything. Any value returned is ignored.
 
 PS.enter = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
+
 
     // Check if the bead is a cat, a mouse, or floor
     if (data == MOUSE.FLOOR_COLOR){
@@ -356,7 +394,7 @@ NOTE: Currently, only mouse wheel events are reported, and only when the mouse c
 
 // UNCOMMENT the following code BLOCK to expose the PS.input() event handler:
 
-/*
+
 
 PS.input = function( sensors, options ) {
 	"use strict"; // Do not remove this directive!
@@ -365,14 +403,15 @@ PS.input = function( sensors, options ) {
 
 //	 var device = sensors.wheel; // check for scroll wheel
 //
-//	 if ( device ) {
-//	   PS.debug( "PS.input(): " + device + "\n" );
-//	 }
+	 if ( device ) {
+	   PS.debug( "PS.input(): " + device + "\n" );
+	 }
 
 	// Add code here for when an input event is detected.
-};
+    MOUSE.move(x + 1, y + 1, x, y);
+//};
 
-*/
+
 
 /*
 PS.shutdown ( options )
