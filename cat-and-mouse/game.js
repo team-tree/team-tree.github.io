@@ -23,7 +23,7 @@ var MOUSE = {
     // Functions
 
     // Moves the mouse by one square if there is a blank square around it
-    move : function(new_x, new_y, old_x, old_y){
+    move : function(x, y){
         "use strict";
     },
 
@@ -63,23 +63,59 @@ var CAT = {
         "use strict";
 
         //Array that holds possible movable squares
-        var movable_x = [];
+        var movable_x = []; // arrays to store movable positions
         var movable_y = [];
+        var mouse_x = []; // array to store mouse positions
+        var mouse_y = [];
 
 
         // Double for loop to go through all the beads around the cat
+        loop1:
+
         for (var i = x - 1; i <= x + 1; i++){
+
+            loop2:
+
             for (var j = y - 1; j <= y + 1; y++){
 
+                // Check if the movement range is outside the grid
+                if (x < MOUSE.GRID_LENGTH && y < MOUSE.GRID_HEIGHT && x >= 0 && y >= 0){
 
-                if (x < MOUSE.GRID_LENGTH && y < MOUSE.GRID_HEIGHT){
-                    // check for mice
+                    // Check if it is a movable
                     if (PS.data(i, j) == MOUSE.MOUSE_COLOR){
+                        mouse_x.push(i);
+                        mouse_y.push(j);
+                        break loop1;
+
+                    }
+                    // Check if it is a floor tile
+                    if (PS.data(i, j) == MOUSE.FLOOR_COLOR){
                         movable_x.push(i);
                         movable_y.push(j);
                     }
                 }
             }
+        }
+
+        // Stores the length of the movable array
+        var len = movable_x.length;
+
+        // Check if there are any mice to eat
+        if (mouse_x.length > 0){
+            CAT.eat(x, y, mouse_x[0], mouse_y[0]);
+        }
+
+        else if (movable_x.length > 0){
+            var random = PS.random(movable_x.length - 1); // to pick randomly out of movable tiles
+
+            // Change colors to indicate movement
+            PS.color(movable_x[random], movable_y[random], CAT.CAT_COLOR);
+            PS.color(x, y, MOUSE.FLOOR_COLOR);
+
+            // Change data as well
+            PS.data(movable_x[random], movable_y[random], CAT.CAT_COLOR);
+            PS.data(x, y, MOUSE.FLOOR_COLOR);
+
         }
     },
 
@@ -103,8 +139,18 @@ var CAT = {
 
     tick : function(){
         "use strict";
+
+        var len, i, x, y
+
+        len = CAT.CATS_X.length;
+
+        i = 0;
+        while (i < len){
+            
+        }
     }
 }
+
 /*
 PS.init( system, options )
 Called once after engine is initialized but before event-polling begins.
@@ -114,8 +160,6 @@ Any value returned is ignored.
 [system : Object] = A JavaScript object containing engine and host platform information properties; see API documentation for details.
 [options : Object] = A JavaScript object with optional data properties; see API documentation for details.
 */
-
-// UNCOMMENT the following code BLOCK to expose the PS.init() event handler:
 
 
 
@@ -134,11 +178,7 @@ PS.init = function( system, options ) {
     PS.color(PS.ALL, PS.ALL, MOUSE.FLOOR_COLOR);
     PS.data(PS.ALL, PS.ALL, MOUSE.FLOOR_COLOR);
 
-	// This is also a good place to display
-	// your game title or a welcome message
-	// in the status line above the grid.
-	// Uncomment the following code line and
-	// change the string parameter as needed.
+
 
     PS.statusText( "Click a square to drop cat" );
 
@@ -164,6 +204,8 @@ This function doesn't have to do anything. Any value returned is ignored.
 PS.touch = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
 
+    var rand = PS.random(5);
+
     // Create cat and change color of the bead
     CAT.born(x, y);
     PS.color(x, y, CAT.CAT_COLOR);
@@ -174,7 +216,8 @@ PS.touch = function( x, y, data, options ) {
 	// Uncomment the following code line
 	// to inspect x/y parameters:
 
-    PS.debug( "PS.touch() @ " + CAT.CATS_X + ", " + CAT.CATS_Y + "\n" );
+    //PS.debug( "PS.touch() @ " + CAT.CATS_X + ", " + CAT.CATS_Y + "\n" );
+
 
 	// Add code here for mouse clicks/touches
 	// over a bead.
