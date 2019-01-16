@@ -13,7 +13,7 @@ var MOUSE = {
     // Game dimensions
     GRID_HEIGHT: 10,
     GRID_LENGTH: 10,
-    FRAME_RATE: 50, // animation frame rate; 6/60ths = 10 fps
+    FRAME_RATE: 50,
     MOUSE_TIMER: "",
     REPRODUCTION_COUNT: 0,
 
@@ -21,6 +21,7 @@ var MOUSE = {
     MOUSE_COLOR: 0xe86b0c,
     FLOOR_COLOR: 0xf9d29d,
     BORDER_COLOR: 0x7f543e,
+    BG_COLOR: 0xF9D2AC,
 
     // Functions
 
@@ -36,21 +37,12 @@ var MOUSE = {
             // Check if in grid
             if ((x+i) >= 0 && (x+i) < MOUSE.GRID_LENGTH) {
 
-                //Testing
-                //PS.debug("x = " + x + " i = " + i + "\n");
-
                 var current_x = x + i; // Store current x that is being checked
 
                 for (var j = -1; j < 2; j += 1) {
 
-
-
                     // Check if in grid
                     if ((y+j) >= 0 && (y+j) < MOUSE.GRID_HEIGHT) {
-
-                        //Testing
-                        //PS.debug("y = " + y + " j = " + j + "\n");
-
 
                         var current_y = y + j; // Store current y that is being checked
 
@@ -87,8 +79,6 @@ var MOUSE = {
             PS.data(tuple[0], tuple[1], MOUSE.MOUSE_COLOR);
             PS.data(x, y, MOUSE.FLOOR_COLOR);
 
-            //Testing
-            //PS.debug(tuple[0] +", " + tuple[1]);
 
             // Return a tuple with the coordinates
             if (tuple[0] != null && tuple[1] != null) {
@@ -187,20 +177,18 @@ var MOUSE = {
     tick : function(){
         "use strict";
 
-        var current_x, current_y, no_mice;
+        var current_x, current_y, empty_board;
 
 
         current_x = 0;
         current_y = 0;
-        no_mice = true;
+        empty_board = true;
 
 
 
         // double loop to go through all the grid
         while (current_y < MOUSE.GRID_HEIGHT) {
 
-            //Testing
-            //PS.debug("y = " + current_y + "\n");
 
             while (current_x < MOUSE.GRID_LENGTH) {
 
@@ -210,7 +198,7 @@ var MOUSE = {
 
 
                     // Check if it is time to reproduce
-                    if (MOUSE.REPRODUCTION_COUNT >= 3){
+                    if (MOUSE.REPRODUCTION_COUNT >= 2){
                         MOUSE.reproduce(current_x, current_y);
                         MOUSE.REPRODUCTION_COUNT = 0;
                     }
@@ -220,7 +208,14 @@ var MOUSE = {
                     current_x += 1;
 
                     //Update no_mice variable
-                    no_mice = false;
+                    empty_board = false;
+
+                }
+                // Check if there are cats
+                else if (PS.data(current_x, current_y) == CAT.CAT_COLOR){
+
+                    empty_board = false
+                    current_x += 1;
 
                 } else {
 
@@ -237,9 +232,9 @@ var MOUSE = {
         MOUSE.REPRODUCTION_COUNT += 1;
 
         //Check if there are any mice and create if there aren't any
-        if (no_mice){
+        if (empty_board){
 
-            var count = Math.floor((MOUSE.GRID_HEIGHT * MOUSE.GRID_LENGTH) / 5);
+            var count = Math.floor((MOUSE.GRID_HEIGHT * MOUSE.GRID_LENGTH) / 3);
 
             for(var k = 0; k < count; k += 1){
 
@@ -253,7 +248,7 @@ var MOUSE = {
 var CAT = {
 
     // Frame rate and timer
-    FRAME_RATE: 15, // animation frame rate; 8/60ths =  fps
+    FRAME_RATE: 10,
     CAT_TIMER: "",
     // Position
     POS_X: null,
@@ -266,6 +261,7 @@ var CAT = {
     // Active Cats
     CATS_X: [],
     CATS_Y: [],
+    CATS_HUNGER: [],
 
     // Functions
 
@@ -280,21 +276,12 @@ var CAT = {
             // Check if in grid
             if ((x+i) >= 0 && (x+i) < MOUSE.GRID_LENGTH) {
 
-                //Testing
-                //PS.debug("x = " + x + " i = " + i + "\n");
-
                 var current_x = x + i; // Store current x that is being checked
 
                 for (var j = -1; j < 2; j += 1) {
 
-
-
                     // Check if in grid
                     if ((y+j) >= 0 && (y+j) < MOUSE.GRID_HEIGHT) {
-
-                        //Testing
-                        //PS.debug("y = " + y + " j = " + j + "\n");
-
 
                         var current_y = y + j; // Store current y that is being checked
 
@@ -304,11 +291,9 @@ var CAT = {
 
                         // Move towards the first mouse you see
                         else if (PS.data(current_x, current_y) == MOUSE.MOUSE_COLOR) {
-                            // Testing
-                            //PS.debug("Second if statement passed");
-                            //console.log("second if");
 
                             CAT.eat(x, y, current_x, current_y);
+                            PS.audioPlay("fx_squish");
 
                             // make it into a tuple the return
                             var tuple = [current_x, current_y];
@@ -330,6 +315,10 @@ var CAT = {
                 i += 1;
             }
         }
+
+        // No mouse eaten so hunger incremented
+        CAT.starve(x, y);
+
         // check if there is anywhere to move
         if (movable_x.length > 0){
             var random = (PS.random(movable_x.length) - 1); // to pick randomly out of movable tiles
@@ -343,11 +332,10 @@ var CAT = {
             PS.data(tuple[0], tuple[1], CAT.CAT_COLOR);
             PS.data(x, y, MOUSE.FLOOR_COLOR);
 
-            //Testing
-            //PS.debug(tuple[0] +", " + tuple[1]);
 
             // Return a tuple with the coordinates
             if (tuple[0] != null && tuple[1] != null) {
+
                 return tuple
             }
             else {
@@ -371,10 +359,34 @@ var CAT = {
         PS.data(cat_x, cat_y, MOUSE.FLOOR_COLOR);
         PS.data(mouse_x, mouse_y, CAT.CAT_COLOR);
 
+        for (var i = 0; i < CAT.CATS_X.length; i += 1){
+
+            if (cat_x == CAT.CATS_X[i] && cat_y == CAT.CATS_Y[i]){
+
+                CAT.CATS_HUNGER[i] = 0;
+            }
+        }
+
+
+
+    },
+
+    // Increase starve count
+    starve : function(x, y) {
+        "use strict";
+
+        for (var i = 0; i < CAT.CATS_X.length; i += 1){
+
+            if (x == CAT.CATS_X[i] && y == CAT.CATS_Y[i]){
+
+                CAT.CATS_HUNGER[i] += 1;
+            }
+        }
     },
 
     // Creates a new cat on the grid
     born : function(x, y){
+        "use strict";
 
         // Assign position
         CAT.POS_X = x;
@@ -384,6 +396,33 @@ var CAT = {
         CAT.CATS_X.push(x);
         CAT.CATS_Y.push(y);
 
+        // Hunger
+        CAT.CATS_HUNGER.push(0);
+
+
+    },
+    // Destroys a cat on the grid
+    die : function(x, y){
+        "use strict";
+
+        // Remove from active cats
+        for (var i = 0; i < CAT.CATS_X.length; i += 1){
+
+            if (x == CAT.CATS_X[i] && y == CAT.CATS_Y[i]) {
+
+                // Change color
+                PS.color(CAT.CATS_X[i], CAT.CATS_Y[i], MOUSE.FLOOR_COLOR);
+
+                // Channge data
+                PS.data(CAT.CATS_X[i], CAT.CATS_Y[i], MOUSE.FLOOR_COLOR);
+
+                // Remove from arrays
+                CAT.CATS_X.splice(i, 1);
+                CAT.CATS_Y.splice(i, 1);
+                CAT.CATS_HUNGER.splice(i, 1);
+
+            }
+        }
     },
 
     tick : function(){
@@ -400,15 +439,22 @@ var CAT = {
             // Choose the cat to move and move it
             cat_x = CAT.CATS_X[i];
             cat_y = CAT.CATS_Y[i];
-            //coordinates = CAT.move(cat_x, cat_y);
 
-            // Testing
-            //PS.debug(coordinates[0] + ", " + coordinates[1] + "\n");
-            if (coordinates = CAT.move(cat_x, cat_y)) {
+
+            // Check if cat starves
+            if (CAT.CATS_HUNGER[i] > 5){
+
+                CAT.die(cat_x, cat_y);
+            }
+
+            // Check if it can move
+            else if (coordinates = CAT.move(cat_x, cat_y)) {
 
                 // Store new position of the cat
                 CAT.CATS_X[i] = coordinates[0];
                 CAT.CATS_Y[i] = coordinates[1];
+
+                //Incremnts
                 i += 1;
             }
             else {
@@ -417,17 +463,6 @@ var CAT = {
         }
     }
 };
-
-/*
-PS.init( system, options )
-Called once after engine is initialized but before event-polling begins.
-This function doesn't have to do anything, although initializing the grid dimensions with PS.gridSize() is recommended.
-If PS.grid() is not called, the default grid dimensions (8 x 8 beads) are applied.
-Any value returned is ignored.
-[system : Object] = A JavaScript object containing engine and host platform information properties; see API documentation for details.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
-
 
 
 PS.init = function( system, options ) {
@@ -451,52 +486,21 @@ PS.init = function( system, options ) {
     PS.color(PS.ALL, PS.ALL, MOUSE.FLOOR_COLOR);
     PS.data(PS.ALL, PS.ALL, MOUSE.FLOOR_COLOR);
 
+    // Set border color
+    PS.borderColor(PS.ALL, PS.ALL, MOUSE.BORDER_COLOR);
 
+    // Set background color
+    PS.gridColor(MOUSE.BG_COLOR);
 
+    // Status Text
     PS.statusText( "Click a square to drop cat" );
 
-	// Add any other initialization code you need here.
-
-
-
-
-
+    // Timers
     CAT.CAT_TIMER = PS.timerStart(CAT.FRAME_RATE, CAT.tick);
     MOUSE.MOUSE_TIMER = PS.timerStart(MOUSE.FRAME_RATE, MOUSE.tick);
 
-    /*
-    //Testing
-    PS.color(3, 4, MOUSE.MOUSE_COLOR);
-    PS.color(0, 0, MOUSE.MOUSE_COLOR);
-    PS.color(2, 1, MOUSE.MOUSE_COLOR);
-    PS.color(3, 5, MOUSE.MOUSE_COLOR);
-    PS.color(0, 1, MOUSE.MOUSE_COLOR);
-    PS.color(2, 4, MOUSE.MOUSE_COLOR);
-
-    PS.data(3, 4, MOUSE.MOUSE_COLOR);
-    PS.data(0, 0, MOUSE.MOUSE_COLOR);
-    PS.data(2, 1, MOUSE.MOUSE_COLOR);
-    PS.data(3, 5, MOUSE.MOUSE_COLOR);
-    PS.data(0, 1, MOUSE.MOUSE_COLOR);
-    PS.data(2, 4, MOUSE.MOUSE_COLOR);
-    */
 
 };
-
-
-
-/*
-PS.touch ( x, y, data, options )
-Called when the left mouse button is clicked over bead(x, y), or when bead(x, y) is touched.
-This function doesn't have to do anything. Any value returned is ignored.
-[x : Number] = zero-based x-position (column) of the bead on the grid.
-[y : Number] = zero-based y-position (row) of the bead on the grid.
-[data : *] = The JavaScript value previously associated with bead(x, y) using PS.data(); default = 0.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
-
-// UNCOMMENT the following code BLOCK to expose the PS.touch() event handler:
-
 
 
 PS.touch = function( x, y, data, options ) {
@@ -517,47 +521,6 @@ PS.touch = function( x, y, data, options ) {
 };
 
 
-
-/*
-PS.release ( x, y, data, options )
-Called when the left mouse button is released, or when a touch is lifted, over bead(x, y).
-This function doesn't have to do anything. Any value returned is ignored.
-[x : Number] = zero-based x-position (column) of the bead on the grid.
-[y : Number] = zero-based y-position (row) of the bead on the grid.
-[data : *] = The JavaScript value previously associated with bead(x, y) using PS.data(); default = 0.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
-
-// UNCOMMENT the following code BLOCK to expose the PS.release() event handler:
-
-/*
-
-PS.release = function( x, y, data, options ) {
-	"use strict"; // Do not remove this directive!
-
-	// Uncomment the following code line to inspect x/y parameters:
-
-	// PS.debug( "PS.release() @ " + x + ", " + y + "\n" );
-
-	// Add code here for when the mouse button/touch is released over a bead.
-};
-
-*/
-
-/*
-PS.enter ( x, y, button, data, options )
-Called when the mouse cursor/touch enters bead(x, y).
-This function doesn't have to do anything. Any value returned is ignored.
-[x : Number] = zero-based x-position (column) of the bead on the grid.
-[y : Number] = zero-based y-position (row) of the bead on the grid.
-[data : *] = The JavaScript value previously associated with bead(x, y) using PS.data(); default = 0.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
-
-// UNCOMMENT the following code BLOCK to expose the PS.enter() event handler:
-
-
-
 PS.enter = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
 
@@ -567,28 +530,9 @@ PS.enter = function( x, y, data, options ) {
         // Change color of bead to hover
         PS.color(x, y, CAT.CAT_COLOR_HOVER);
     }
-    // Show faint cat color when hovering over beads
-
-	// Uncomment the following code line to inspect x/y parameters:
-
-	//PS.debug( "PS.enter() @ " + x + ", " + y + "," + data + "\n" );
-
-	// Add code here for when the mouse cursor/touch enters a bead.
 };
 
 
-
-/*
-PS.exit ( x, y, data, options )
-Called when the mouse cursor/touch exits bead(x, y).
-This function doesn't have to do anything. Any value returned is ignored.
-[x : Number] = zero-based x-position (column) of the bead on the grid.
-[y : Number] = zero-based y-position (row) of the bead on the grid.
-[data : *] = The JavaScript value previously associated with bead(x, y) using PS.data(); default = 0.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
-
-// UNCOMMENT the following code BLOCK to expose the PS.exit() event handler:
 
 
 
