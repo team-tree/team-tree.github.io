@@ -493,7 +493,7 @@ PS.init = function( system, options ) {
     PS.gridColor(MOUSE.BG_COLOR);
 
     // Status Text
-    PS.statusText( "Click a square to drop cat" );
+    PS.statusText( "Click to drop cats, 4-9 keys to change grid" );
 
     // Timers
     CAT.CAT_TIMER = PS.timerStart(CAT.FRAME_RATE, CAT.tick);
