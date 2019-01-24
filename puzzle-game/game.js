@@ -44,8 +44,9 @@ var Board = {
     GRID_HEIGHT: 8,
     GRID_LENGTH: 8,
 
-    GAME_BG: 0x808080,
+    GAME_BORDER: 0x808080,
     GAME_FLOOR: 0x496345,
+    GAME_BACKGROUND: 0x808080,
 
     GRAVITY_FRAMES: 10
 
@@ -72,8 +73,8 @@ var P1 = {
 
             if(PS.color(P1.POS_X + P1.VELOCITY_X, P1.POS_Y) != Board.GAME_FLOOR) {
 
-                // Change initial position to white
-                PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_WHITE);
+                // Change initial position to background color
+                PS.color(P1.POS_X, P1.POS_Y, Board.GAME_BACKGROUND);
 
                 P1.POS_X = P1.POS_X + P1.VELOCITY_X;
 
@@ -90,8 +91,8 @@ var P1 = {
         if(P1.POS_Y + P1.VELOCITY_Y < Board.GRID_HEIGHT && P1.POS_Y + P1.VELOCITY_Y >= 0) {
 
 
-            // Change initial position to white
-            PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_WHITE);
+            // Change initial position to background color
+            PS.color(P1.POS_X, P1.POS_Y, Board.GAME_BACKGROUND);
 
             P1.POS_Y = P1.POS_Y + P1.VELOCITY_Y;
 
@@ -153,8 +154,8 @@ var P2 = {
 
             if(PS.color(P2.POS_X + P2.VELOCITY_X, P2.POS_Y) != Board.GAME_FLOOR) {
 
-                // Change initial position to white
-                PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
+                // Change initial position background color
+                PS.color(P2.POS_X, P2.POS_Y, Board.GAME_BACKGROUND);
 
                 P2.POS_X = P2.POS_X + P2.VELOCITY_X;
 
@@ -169,8 +170,8 @@ var P2 = {
 
         if(P2.POS_Y + P2.VELOCITY_Y < Board.GRID_HEIGHT && P2.POS_Y + P2.VELOCITY_Y >= 0) {
 
-            // Change initial position to white
-            PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
+            // Change initial position to background color
+            PS.color(P2.POS_X, P2.POS_Y, Board.GAME_BACKGROUND);
 
             P2.POS_Y = P2.POS_Y + P2.VELOCITY_Y;
 
@@ -242,7 +243,9 @@ PS.init = function( system, options ) {
 
 
     PS.gridSize(Board.GRID_HEIGHT, Board.GRID_LENGTH);
-    PS.gridColor(Board.GAME_BG);
+    PS.gridColor(Board.GAME_BORDER);
+
+    PS.color(PS.ALL, PS.ALL, Board.GAME_BACKGROUND);
 
 
 
