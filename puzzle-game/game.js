@@ -44,7 +44,11 @@ var Board = {
     GRID_HEIGHT: 8,
     GRID_LENGTH: 8,
 
-    GAME_BG: 0x808080
+    GAME_BG: 0x808080,
+    GAME_FLOOR: 0x496345,
+
+    GRAVITY_FRAMES: 10
+
 
 };
 
@@ -66,13 +70,16 @@ var P1 = {
         // Check if in grid
         if(P1.POS_X + P1.VELOCITY_X < Board.GRID_LENGTH && P1.POS_X + P1.VELOCITY_X >= 0) {
 
-            // Change initial position to white
-            PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_WHITE);
+            if(PS.color(P1.POS_X + P1.VELOCITY_X, P1.POS_Y) != Board.GAME_FLOOR) {
 
-            P1.POS_X = P1.POS_X + P1.VELOCITY_X;
+                // Change initial position to white
+                PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_WHITE);
 
-            // Change new position to black
-            PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
+                P1.POS_X = P1.POS_X + P1.VELOCITY_X;
+
+                // Change new position to black
+                PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
+            }
         }
     },
 
@@ -81,6 +88,7 @@ var P1 = {
 
         // Check if in grid
         if(P1.POS_Y + P1.VELOCITY_Y < Board.GRID_HEIGHT && P1.POS_Y + P1.VELOCITY_Y >= 0) {
+
 
             // Change initial position to white
             PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_WHITE);
@@ -106,8 +114,24 @@ var P1 = {
         velocity_x = 0;
         velocity_y = 0;
 
-    }
+    },
 
+    gravity : function() {
+        "use strict";
+
+        if(PS.color(P1.POS_X, (P1.POS_Y + 1)) != Board.GAME_FLOOR){
+            P1.VELOCITY_Y = 1;
+
+            P1.moveY();
+
+            //Testing
+            //PS.debug("gravity passed : "+P1.VELOCITY_Y+"\n");
+
+        } else {
+
+            P1.VELOCITY_Y = 0;
+        }
+    }
 };
 
 var P2 = {
@@ -127,13 +151,16 @@ var P2 = {
 
         if(P2.POS_X + P2.VELOCITY_X < Board.GRID_LENGTH && P2.POS_X + P2.VELOCITY_X >= 0) {
 
-            // Change initial position to white
-            PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
+            if(PS.color(P2.POS_X + P2.VELOCITY_X, P2.POS_Y) != Board.GAME_FLOOR) {
 
-            P2.POS_X = P2.POS_X + P2.VELOCITY_X;
+                // Change initial position to white
+                PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
 
-            // Change new position to black
-            PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
+                P2.POS_X = P2.POS_X + P2.VELOCITY_X;
+
+                // Change new position to black
+                PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
+            }
         }
     },
 
@@ -166,6 +193,23 @@ var P2 = {
         velocity_x = 0;
         velocity_y = 0;
 
+    },
+
+    gravity : function() {
+        "use strict";
+
+        if(PS.color(P2.POS_X, (P2.POS_Y + 1)) != Board.GAME_FLOOR){
+            P2.VELOCITY_Y = 1;
+
+            P2.moveY();
+
+            //Testing
+            //PS.debug("gravity passed : "+P1.VELOCITY_Y+"\n");
+
+        } else {
+
+            P2.VELOCITY_Y = 0;
+        }
     }
 
 };
@@ -211,8 +255,24 @@ PS.init = function( system, options ) {
 
 	// Initialize P2
 	P2.POS_X = 5;
-	P2.POS_Y = 6;
+	P2.POS_Y = 0;
     PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
+
+    // Initialize game floor
+    for(var i = 0; i < Board.GRID_LENGTH; i++){
+        for (var j = 6; j < Board.GRID_HEIGHT; j++){
+
+        PS.color(i, j, Board.GAME_FLOOR);
+        }
+    }
+
+    // Testing
+    PS.color(0, 5, Board.GAME_FLOOR);
+    PS.color(7, 5, Board.GAME_FLOOR);
+
+    // Timers
+    PS.timerStart(Board.GRAVITY_FRAMES, P1.gravity);
+    PS.timerStart(Board.GRAVITY_FRAMES, P2.gravity);
 
 };
 
@@ -370,7 +430,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 
 	// Add code here for when a key is pressed.
 
-
+    /*
 	// W key
 	if (key == 119){
 
@@ -390,6 +450,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 
 
     }
+    */
 
 	// A key
 	if (key == 97){
@@ -405,11 +466,12 @@ PS.keyDown = function( key, shift, ctrl, options ) {
         //PS.debug("P1x = "+P1.POS_X+" P2x = "+P2.POS_X+" P1y = "+P1.POS_Y+" P2y = "+P2.POS_Y+"\n");
 
         // Change colors
-        PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
-        PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
+        //PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
+        //PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
 
     }
 
+    /*
 	// S key
     if (key == 115){
 
@@ -428,6 +490,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
         PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
 
     }
+    */
 
     // D key
     if (key == 100){
@@ -444,8 +507,8 @@ PS.keyDown = function( key, shift, ctrl, options ) {
         //PS.debug("P1x = "+P1.POS_X+" P2x = "+P2.POS_X+" P1y = "+P1.POS_Y+" P2y = "+P2.POS_Y+"\n");
 
 
-        PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
-        PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
+        //PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
+        //PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
 
     }
 };
