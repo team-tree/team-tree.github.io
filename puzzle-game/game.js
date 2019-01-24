@@ -48,8 +48,24 @@ var Board = {
     GAME_FLOOR: 0x496345,
     GAME_BACKGROUND: 0x808080,
 
-    GRAVITY_FRAMES: 10
+    GRAVITY_FRAMES: 10,
 
+    // Timers
+    END_TIMER: "",
+
+
+    end : function() {
+        "use strict";
+
+        if(P1.POS_X == P2.POS_X && P1.POS_Y == P2.POS_Y){
+
+            PS.timerStop(Board.END_TIMER);
+            PS.timerStop(P1.GRAVITY_TIMER);
+            PS.timerStop(P2.GRAVITY_TIMER);
+
+            PS.init();
+        }
+    }
 
 };
 
@@ -63,6 +79,9 @@ var P1 = {
     VELOCITY_X: 0,
     VELOCITY_Y: 0,
     MAX_VELOCITY: 5,
+
+    // Timers
+    GRAVITY_TIMER: "",
 
     // Functions
     moveX : function() {
@@ -146,6 +165,9 @@ var P2 = {
     VELOCITY_Y: 0,
     MAX_VELOCITY: 5,
 
+    // Timers
+    GRAVITY_TIMER: "",
+
     // Functions
     moveX : function() {
         "use strict";
@@ -160,7 +182,7 @@ var P2 = {
                 P2.POS_X = P2.POS_X + P2.VELOCITY_X;
 
                 // Change new position to black
-                PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
+                PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
             }
         }
     },
@@ -176,7 +198,7 @@ var P2 = {
             P2.POS_Y = P2.POS_Y + P2.VELOCITY_Y;
 
             // Change new position to black
-            PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
+            PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
         }
     },
 
@@ -199,6 +221,7 @@ var P2 = {
     gravity : function() {
         "use strict";
 
+        // Check if there is floor below
         if(PS.color(P2.POS_X, (P2.POS_Y + 1)) != Board.GAME_FLOOR){
             P2.VELOCITY_Y = 1;
 
@@ -211,6 +234,7 @@ var P2 = {
 
             P2.VELOCITY_Y = 0;
         }
+
     }
 
 };
@@ -259,7 +283,7 @@ PS.init = function( system, options ) {
 	// Initialize P2
 	P2.POS_X = 5;
 	P2.POS_Y = 0;
-    PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
+    PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
 
     // Initialize game floor
     for(var i = 0; i < Board.GRID_LENGTH; i++){
@@ -274,8 +298,9 @@ PS.init = function( system, options ) {
     PS.color(7, 5, Board.GAME_FLOOR);
 
     // Timers
-    PS.timerStart(Board.GRAVITY_FRAMES, P1.gravity);
-    PS.timerStart(Board.GRAVITY_FRAMES, P2.gravity);
+    P1.GRAVITY_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, P1.gravity);
+    P2.GRAVITY_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, P2.gravity);
+    Board.END_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, Board.end);
 
 };
 
