@@ -41,14 +41,18 @@ If you don't use JSHint (or are using it with a configuration file), you can saf
 // Global namespaces
 var Board = {
 
-    GRID_HEIGHT: 8,
-    GRID_LENGTH: 8,
+    GRID_LENGTH: 0,
+    GRID_HEIGHT: 0,
+
+    CURRENT_LEVEL: 0,
 
     GAME_BORDER: 0x808080,
     GAME_FLOOR: 0x496345,
+    GAME_PLATFORM: 0xdeb76e,
     GAME_BACKGROUND: 0x808080,
 
     GRAVITY_FRAMES: 10,
+    END_FRAMES: 4,
 
     // Timers
     END_TIMER: "",
@@ -59,15 +63,85 @@ var Board = {
 
         if(P1.POS_X == P2.POS_X && P1.POS_Y == P2.POS_Y){
 
+
             PS.timerStop(Board.END_TIMER);
             PS.timerStop(P1.GRAVITY_TIMER);
             PS.timerStop(P2.GRAVITY_TIMER);
 
+            Board.CURRENT_LEVEL += 1;
+
             PS.init();
+        } else {
+
+            P1.render();
+            P2.render();
+
         }
     }
 
 };
+
+
+var Levels = {
+
+    GRID_SIZES: [8, 10, 11, 12],
+
+    GROUND_LINE: [
+                    [6,7],
+                    [8,9],
+                    [10],
+                    [4, 11]
+                 ],
+    PLATFORMS_X: [
+                    [0,7],
+                    [0,1,4,6,8,9,9,9],
+                    [],
+                    []
+                 ],
+    PLATFORMS_Y: [
+                    [5,5],
+                    [7,7,5,4,3,2,3,7],
+                    [],
+                    []
+                 ],
+    P1_START: [
+                [2,2],
+                [9,1],
+                [],
+                []
+              ],
+    P2_START: [
+                [5,0],
+                [9,6],
+                [],
+                []
+              ],
+
+    render : function(level_num) {
+        "use strict";
+
+        // Draw gorund lines
+        for(var i = 0; i < Levels.GROUND_LINE[level_num].length; i++){
+
+            PS.color(PS.ALL, Levels.GROUND_LINE[level_num][i], Board.GAME_FLOOR);
+        }
+
+        for(var j = 0; j < Levels.PLATFORMS_X[level_num].length; j++){
+
+            PS.color(Levels.PLATFORMS_X[level_num][j], Levels.PLATFORMS_Y[level_num][j], Board.GAME_FLOOR);
+        }
+
+        // Initialize P1
+        P1.POS_X = Levels.P1_START[level_num][0];
+        P1.POS_Y = Levels.P1_START[level_num][1];
+
+        // Initialize P2
+        P2.POS_X = Levels.P2_START[level_num][0];
+        P2.POS_Y = Levels.P2_START[level_num][1];
+    }
+
+}
+
 
 var P1 = {
 
@@ -98,7 +172,8 @@ var P1 = {
                 P1.POS_X = P1.POS_X + P1.VELOCITY_X;
 
                 // Change new position to black
-                PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
+                P1.render();
+
             }
         }
     },
@@ -109,30 +184,22 @@ var P1 = {
         // Check if in grid
         if(P1.POS_Y + P1.VELOCITY_Y < Board.GRID_HEIGHT && P1.POS_Y + P1.VELOCITY_Y >= 0) {
 
-
             // Change initial position to background color
             PS.color(P1.POS_X, P1.POS_Y, Board.GAME_BACKGROUND);
 
             P1.POS_Y = P1.POS_Y + P1.VELOCITY_Y;
 
             // Change new position to black
-            PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
+            P1.render();
         }
     },
 
-    turnAround : function(velocity) {
+
+    render : function() {
         "use strict";
 
-        velocity = -velocity;
+        PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
 
-        return velocity;
-    },
-
-    stop : function(velocity_x, velocity_y) {
-        "use strict";
-
-        velocity_x = 0;
-        velocity_y = 0;
 
     },
 
@@ -163,7 +230,6 @@ var P2 = {
     // Player movement
     VELOCITY_X: 0,
     VELOCITY_Y: 0,
-    MAX_VELOCITY: 5,
 
     // Timers
     GRAVITY_TIMER: "",
@@ -176,13 +242,14 @@ var P2 = {
 
             if(PS.color(P2.POS_X + P2.VELOCITY_X, P2.POS_Y) != Board.GAME_FLOOR) {
 
-                // Change initial position background color
+                // Change initial position to background color
                 PS.color(P2.POS_X, P2.POS_Y, Board.GAME_BACKGROUND);
 
                 P2.POS_X = P2.POS_X + P2.VELOCITY_X;
 
-                // Change new position to black
-                PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
+                // Change new position to white
+                P2.render();
+
             }
         }
     },
@@ -197,24 +264,16 @@ var P2 = {
 
             P2.POS_Y = P2.POS_Y + P2.VELOCITY_Y;
 
-            // Change new position to black
-            PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
+            // Change new position to white
+            P2.render();
         }
     },
 
-    turnAround : function(velocity) {
+
+    render : function() {
         "use strict";
 
-        velocity = -velocity;
-
-        return velocity;
-    },
-
-    stop : function(velocity_x, velocity_y) {
-        "use strict";
-
-        velocity_x = 0;
-        velocity_y = 0;
+        PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
 
     },
 
@@ -265,8 +324,12 @@ PS.init = function( system, options ) {
 
 	// PS.debug( "PS.init() called\n" );
 
+    Board.GRID_LENGTH = Levels.GRID_SIZES[Board.CURRENT_LEVEL];
+    Board.GRID_HEIGHT = Levels.GRID_SIZES[Board.CURRENT_LEVEL];
 
-    PS.gridSize(Board.GRID_HEIGHT, Board.GRID_LENGTH);
+
+    PS.gridSize(Board.GRID_LENGTH, Board.GRID_HEIGHT);
+
     PS.gridColor(Board.GAME_BORDER);
 
     PS.color(PS.ALL, PS.ALL, Board.GAME_BACKGROUND);
@@ -275,32 +338,15 @@ PS.init = function( system, options ) {
 
     PS.statusText( "Move using WASD keys" );
 
-	// Initialize P1
-	P1.POS_X = 2;
-	P1.POS_Y = 2;
-	PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
-
-	// Initialize P2
-	P2.POS_X = 5;
-	P2.POS_Y = 0;
-    PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_WHITE);
 
     // Initialize game floor
-    for(var i = 0; i < Board.GRID_LENGTH; i++){
-        for (var j = 6; j < Board.GRID_HEIGHT; j++){
+    Levels.render(Board.CURRENT_LEVEL);
 
-        PS.color(i, j, Board.GAME_FLOOR);
-        }
-    }
-
-    // Testing
-    PS.color(0, 5, Board.GAME_FLOOR);
-    PS.color(7, 5, Board.GAME_FLOOR);
 
     // Timers
     P1.GRAVITY_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, P1.gravity);
     P2.GRAVITY_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, P2.gravity);
-    Board.END_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, Board.end);
+    Board.END_TIMER = PS.timerStart(Board.END_FRAMES, Board.end);
 
 };
 
@@ -458,85 +504,46 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 
 	// Add code here for when a key is pressed.
 
-    /*
-	// W key
-	if (key == 119){
-
-        // Set velocities
-        P1.VELOCITY_Y = -1;
-        P2.VELOCITY_Y = -1;
-
-	    // Move
-	    P1.moveY();
-        P2.moveY();
-
-        //PS.debug("P1x = "+P1.POS_X+" P2x = "+P2.POS_X+" P1y = "+P1.POS_Y+" P2y = "+P2.POS_Y+"\n");
-
-        // Change colors
-        PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
-        PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
-
-
-    }
-    */
 
 	// A key
-	if (key == 97){
+	if (key == 97 || key == 1005){
+
 
         // Set velocities
         P1.VELOCITY_X = -1;
         P2.VELOCITY_X = -1;
 
+
         // Move
         P1.moveX();
+
+
+        // Same for P2
         P2.moveX();
 
-        //PS.debug("P1x = "+P1.POS_X+" P2x = "+P2.POS_X+" P1y = "+P1.POS_Y+" P2y = "+P2.POS_Y+"\n");
-
-        // Change colors
-        //PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
-        //PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
-
-    }
-
-    /*
-	// S key
-    if (key == 115){
-
-        // Set velocities
-        P1.VELOCITY_Y = 1;
-        P2.VELOCITY_Y = 1;
-
-        // Move
-        P1.moveY();
-        P2.moveY();
 
         //PS.debug("P1x = "+P1.POS_X+" P2x = "+P2.POS_X+" P1y = "+P1.POS_Y+" P2y = "+P2.POS_Y+"\n");
 
-        // Change colors
-        PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
-        PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
 
     }
-    */
 
     // D key
-    if (key == 100){
+    if (key == 100 || key == 1007){
 
 
         // Set velocities
         P1.VELOCITY_X = 1;
         P2.VELOCITY_X = 1;
 
+
         // Move
         P1.moveX();
         P2.moveX();
 
+
         //PS.debug("P1x = "+P1.POS_X+" P2x = "+P2.POS_X+" P1y = "+P1.POS_Y+" P2y = "+P2.POS_Y+"\n");
 
 
-        //PS.color(P1.POS_X, P1.POS_Y, PS.COLOR_BLACK);
-        //PS.color(P2.POS_X, P2.POS_Y, PS.COLOR_BLACK);
 
     }
 };
