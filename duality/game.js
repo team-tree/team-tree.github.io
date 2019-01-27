@@ -125,6 +125,8 @@ var Levels = {
 
     GRID_SIZES: [8, 10, 11],
 
+    PARS: [4,4,7],
+
     GROUND_LINE: [
                     [6,7],
                     [8,9],
@@ -508,7 +510,7 @@ PS.enter = function( x, y, data, options ) {
 	// Info button
 	if(x == 1 && y == 0){
 
-        PS.statusText("Level par: 4, Current move: "+ Board.CURRENT_MOVES);
+        PS.statusText("Level par: "+ Levels.PARS[Board.CURRENT_LEVEL] +", Current move: "+ Board.CURRENT_MOVES);
 	}
 };
 
