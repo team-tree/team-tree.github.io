@@ -392,7 +392,7 @@ PS.init = function( system, options ) {
     PS.border(PS.ALL, PS.ALL, 0);
 
 
-    PS.statusText( "Move using WASD keys" );
+    PS.statusText( "Use A and D, or arrow keys to move" );
 
     //Load Audio
     PS.audioLoad("fx_powerup8");
@@ -525,7 +525,7 @@ PS.exit = function( x, y, data, options ) {
 	// Add code here for when the mouse cursor/touch exits a bead.
     if(x == 1 && y == 0){
 
-        PS.statusText( "Move using WASD, overlap white and black" );
+        PS.statusText( "Move with A and D, overlap white and black" );
     }
 };
 
