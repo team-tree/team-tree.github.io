@@ -45,32 +45,71 @@ var Board = {
     GRID_HEIGHT: 0,
 
     CURRENT_LEVEL: 0,
+    CURRENT_MOVES: 0,
+    TOTAL_MOVES: 0,
 
     GAME_BORDER: 0x808080,
     GAME_FLOOR: 0x496345,
     GAME_PLATFORM: 0xdeb76e,
     GAME_BACKGROUND: 0x808080,
+    GAME_GRID: 0x757575,
 
     GRAVITY_FRAMES: 10,
     END_FRAMES: 4,
+    FADE_FRAMES: 2,
 
     // Timers
     END_TIMER: "",
+    FADE_OUT_TIMER: "",
+    FADE_IN_TIMER: "",
 
+/*
+    fade : function() {
+        "use strict";
+
+        PS.fade( PS.ALL, PS.ALL, 15 );
+        PS.borderFade(PS.ALL, PS.ALL, 15);
+        PS.borderColor(PS.ALL, PS.ALL, PS.COLOR_WHITE);
+        PS.color(PS.ALL, PS.ALL, PS.COLOR_WHITE);
+        PS.gridShadow ( 1, PS.COLOR_WHITE );
+        PS.timerStop(Board.FADE_OUT_TIMER);
+
+
+    },
+*/
 
     end : function() {
         "use strict";
 
         if(P1.POS_X == P2.POS_X && P1.POS_Y == P2.POS_Y){
 
+            //Board.FADE_OUT_TIMER = PS.timerStart(Board.FADE_FRAMES, Board.fade);
+            if(Board.CURRENT_LEVEL == 2){
+                PS.statusText("You finished the game in " + Board.TOTAL_MOVES + " moves");
+                PS.statusColor(PS.COLOR_GREEN);
+                PS.color(PS.ALL, PS.ALL, Board.GAME_FLOOR);
+                PS.glyph(0, 0, "");
+                PS.glyph(1, 0, "");
 
-            PS.timerStop(Board.END_TIMER);
-            PS.timerStop(P1.GRAVITY_TIMER);
-            PS.timerStop(P2.GRAVITY_TIMER);
+                PS.audioPlay("fx_tada");
 
-            Board.CURRENT_LEVEL += 1;
+                PS.timerStop(Board.END_TIMER);
+                PS.timerStop(P1.GRAVITY_TIMER);
+                PS.timerStop(P2.GRAVITY_TIMER);
 
-            PS.init();
+            } else {
+
+                PS.timerStop(Board.END_TIMER);
+                PS.timerStop(P1.GRAVITY_TIMER);
+                PS.timerStop(P2.GRAVITY_TIMER);
+
+
+                Board.CURRENT_LEVEL += 1;
+
+                PS.audioPlay("fx_powerup8");
+
+                PS.init();
+            }
         } else {
 
             P1.render();
@@ -84,37 +123,32 @@ var Board = {
 
 var Levels = {
 
-    GRID_SIZES: [8, 10, 11, 12],
+    GRID_SIZES: [8, 10, 11],
 
     GROUND_LINE: [
                     [6,7],
                     [8,9],
-                    [10],
-                    [4, 11]
+                    []
                  ],
     PLATFORMS_X: [
                     [0,7],
                     [0,1,4,6,8,9,9,9],
-                    [],
-                    []
+                    [0,1,3,4,5,6,7,2,3,4,5,5,6,7,8,2,3,4,5,6,7,8,2,3,4,5,6,7,8]
                  ],
     PLATFORMS_Y: [
                     [5,5],
                     [7,7,5,4,3,2,3,7],
-                    [],
-                    []
+                    [2,2,6,6,6,6,6,8,8,8,8,7,8,8,8,9,9,9,9,9,9,9,10,10,10,10,10,10,10]
                  ],
     P1_START: [
                 [2,2],
                 [9,1],
-                [],
-                []
+                [0,1]
               ],
     P2_START: [
                 [5,0],
                 [9,6],
-                [],
-                []
+                [4,5]
               ],
 
     render : function(level_num) {
@@ -203,8 +237,19 @@ var P1 = {
 
     },
 
+
     gravity : function() {
         "use strict";
+
+        // Check if in the player fell into the abyss
+        if((P1.POS_Y + 1) == Board.GRID_HEIGHT){
+
+            PS.timerStop(Board.END_TIMER);
+            PS.timerStop(P1.GRAVITY_TIMER);
+            PS.timerStop(P2.GRAVITY_TIMER);
+
+            PS.init();
+        } else // Check if there is floor below
 
         if(PS.color(P1.POS_X, (P1.POS_Y + 1)) != Board.GAME_FLOOR){
             P1.VELOCITY_Y = 1;
@@ -280,6 +325,16 @@ var P2 = {
     gravity : function() {
         "use strict";
 
+        // Check if in the player fell into the abyss
+        if((P2.POS_Y + 1) == Board.GRID_HEIGHT){
+
+            PS.timerStop(Board.END_TIMER);
+            PS.timerStop(P1.GRAVITY_TIMER);
+            PS.timerStop(P2.GRAVITY_TIMER);
+
+            PS.init();
+        }
+
         // Check if there is floor below
         if(PS.color(P2.POS_X, (P2.POS_Y + 1)) != Board.GAME_FLOOR){
             P2.VELOCITY_Y = 1;
@@ -330,18 +385,41 @@ PS.init = function( system, options ) {
 
     PS.gridSize(Board.GRID_LENGTH, Board.GRID_HEIGHT);
 
-    PS.gridColor(Board.GAME_BORDER);
+    PS.gridColor(Board.GAME_GRID);
 
     PS.color(PS.ALL, PS.ALL, Board.GAME_BACKGROUND);
 
+    PS.border(PS.ALL, PS.ALL, 0);
 
 
     PS.statusText( "Move using WASD keys" );
+
+    //Load Audio
+    PS.audioLoad("fx_powerup8");
+    PS.audioLoad("fx_pop");
+    PS.audioLoad("fx_tada");
 
 
     // Initialize game floor
     Levels.render(Board.CURRENT_LEVEL);
 
+
+    // Resert and info button
+    PS.glyph(0, 0, "↺");
+    PS.color(0, 0, 0xdeb76e);
+    PS.glyph(1, 0, "ⓘ");
+    PS.color(1, 0, 0xdeb76e);
+    Board.CURRENT_MOVES = 0;
+
+/*
+    // Reset fade
+    if(Board.FADE_OUT_TIMER != "") {
+
+        PS.gridShadow(0, PS.COLOR_WHITE);
+        PS.fade(PS.ALL, PS.ALL, 0);
+        PS.borderFade(PS.ALL, PS.ALL, 0);
+    }
+*/
 
     // Timers
     P1.GRAVITY_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, P1.gravity);
@@ -374,8 +452,18 @@ PS.touch = function( x, y, data, options ) {
 
 	// PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
 
-	// Add code here for mouse clicks/touches
-	// over a bead.
+	// Rest button
+	if(x == 0 && y == 0){
+
+        PS.timerStop(Board.END_TIMER);
+        PS.timerStop(P1.GRAVITY_TIMER);
+        PS.timerStop(P2.GRAVITY_TIMER);
+
+
+        PS.audioPlay("fx_pop");
+
+        PS.init();
+	}
 };
 
 
@@ -406,19 +494,7 @@ PS.release = function( x, y, data, options ) {
 
 */
 
-/*
-PS.enter ( x, y, button, data, options )
-Called when the mouse cursor/touch enters bead(x, y).
-This function doesn't have to do anything. Any value returned is ignored.
-[x : Number] = zero-based x-position (column) of the bead on the grid.
-[y : Number] = zero-based y-position (row) of the bead on the grid.
-[data : *] = The JavaScript value previously associated with bead(x, y) using PS.data(); default = 0.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
 
-// UNCOMMENT the following code BLOCK to expose the PS.enter() event handler:
-
-/*
 
 PS.enter = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
@@ -428,23 +504,16 @@ PS.enter = function( x, y, data, options ) {
 	// PS.debug( "PS.enter() @ " + x + ", " + y + "\n" );
 
 	// Add code here for when the mouse cursor/touch enters a bead.
+
+	// Info button
+	if(x == 1 && y == 0){
+
+        PS.statusText("Level par: 4, Current move: "+ Board.CURRENT_MOVES);
+	}
 };
 
-*/
 
-/*
-PS.exit ( x, y, data, options )
-Called when the mouse cursor/touch exits bead(x, y).
-This function doesn't have to do anything. Any value returned is ignored.
-[x : Number] = zero-based x-position (column) of the bead on the grid.
-[y : Number] = zero-based y-position (row) of the bead on the grid.
-[data : *] = The JavaScript value previously associated with bead(x, y) using PS.data(); default = 0.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
 
-// UNCOMMENT the following code BLOCK to expose the PS.exit() event handler:
-
-/*
 
 PS.exit = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
@@ -454,9 +523,13 @@ PS.exit = function( x, y, data, options ) {
 	// PS.debug( "PS.exit() @ " + x + ", " + y + "\n" );
 
 	// Add code here for when the mouse cursor/touch exits a bead.
+    if(x == 1 && y == 0){
+
+        PS.statusText( "Move using WASD, overlap white and black" );
+    }
 };
 
-*/
+
 
 /*
 PS.exitGrid ( options )
@@ -521,6 +594,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
         // Same for P2
         P2.moveX();
 
+        // Increment move count
+        Board.CURRENT_MOVES += 1;
+        Board.TOTAL_MOVES += 1;
+
 
         //PS.debug("P1x = "+P1.POS_X+" P2x = "+P2.POS_X+" P1y = "+P1.POS_Y+" P2y = "+P2.POS_Y+"\n");
 
@@ -539,6 +616,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
         // Move
         P1.moveX();
         P2.moveX();
+
+        // Increment move count
+        Board.CURRENT_MOVES += 1;
+        Board.TOTAL_MOVES += 1;
 
 
         //PS.debug("P1x = "+P1.POS_X+" P2x = "+P2.POS_X+" P1y = "+P1.POS_Y+" P2y = "+P2.POS_Y+"\n");
