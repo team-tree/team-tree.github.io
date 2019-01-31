@@ -1,18 +1,22 @@
 /*
 game.js for Perlenspiel 3.3.x
 Last revision: 2018-10-14 (BM)
+
 Perlenspiel is a scheme by Professor Moriarty (bmoriarty@wpi.edu).
 This version of Perlenspiel (3.3.x) is hosted at <https://ps3.perlenspiel.net>
 Perlenspiel is Copyright © 2009-18 Worcester Polytechnic Institute.
 This file is part of the standard Perlenspiel 3.3.x devkit distribution.
+
 Perlenspiel is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
+
 Perlenspiel is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU Lesser General Public License for more details.
+
 You may have received a copy of the GNU Lesser General Public License
 along with the Perlenspiel devkit. If not, see <http://www.gnu.org/licenses/>.
 */
@@ -52,33 +56,50 @@ var Board = {
 
     GRAVITY_FRAMES: 10,
     END_FRAMES: 4,
-    FADE_FRAMES: 2,
+    FADE_FRAMES: 40,
 
     // Timers
     END_TIMER: "",
     FADE_OUT_TIMER: "",
     FADE_IN_TIMER: "",
 
-    /*
-        fade : function() {
-            "use strict";
-            PS.fade( PS.ALL, PS.ALL, 15 );
-            PS.borderFade(PS.ALL, PS.ALL, 15);
-            PS.borderColor(PS.ALL, PS.ALL, PS.COLOR_WHITE);
-            PS.color(PS.ALL, PS.ALL, PS.COLOR_WHITE);
-            PS.gridShadow ( 1, PS.COLOR_WHITE );
-            PS.timerStop(Board.FADE_OUT_TIMER);
-        },
-    */
 
+    fadeOut : function() {
+        "use strict";
+
+        PS.fade( PS.ALL, PS.ALL, 40 );
+        PS.borderFade(PS.ALL, PS.ALL, 40);
+        PS.borderColor(PS.ALL, PS.ALL, PS.COLOR_WHITE);
+        PS.color(PS.ALL, PS.ALL, PS.COLOR_WHITE);
+        PS.gridShadow ( 1, PS.COLOR_WHITE );
+
+
+    },
+
+
+    fadeEnd: function () {
+        "use strict";
+
+
+            PS.gridShadow(0, PS.COLOR_WHITE);
+            PS.fade(PS.ALL, PS.ALL, 0);
+            PS.borderFade(PS.ALL, PS.ALL, 0);
+
+    },
+
+    // Level end condition
     end : function() {
         "use strict";
 
         if(P1.POS_X == P2.POS_X && P1.POS_Y == P2.POS_Y){
 
-            //Board.FADE_OUT_TIMER = PS.timerStart(Board.FADE_FRAMES, Board.fade);
-            if(Board.CURRENT_LEVEL == 2){
+
+            if(Board.CURRENT_LEVEL >= Levels.END_LEVEL){
                 PS.statusText("You finished the game in " + Board.TOTAL_MOVES + " moves");
+
+                // Fade out
+                Board.fadeOut();
+
                 PS.statusColor(PS.COLOR_GREEN);
                 PS.color(PS.ALL, PS.ALL, Board.GAME_FLOOR);
                 PS.glyph(0, 0, "");
@@ -90,7 +111,12 @@ var Board = {
                 PS.timerStop(P1.GRAVITY_TIMER);
                 PS.timerStop(P2.GRAVITY_TIMER);
 
+                if(Board.CURRENT_LEVEL == Levels.END_LEVEL){
+                    Board.CURRENT_LEVEL += 1;
+                }
+
             } else {
+
 
                 PS.timerStop(Board.END_TIMER);
                 PS.timerStop(P1.GRAVITY_TIMER);
@@ -101,7 +127,9 @@ var Board = {
 
                 PS.audioPlay("fx_powerup8");
 
-                PS.init();
+                Board.fadeOut();
+                Board.FADE_OUT_TIMER = PS.timerStart(Board.FADE_FRAMES, PS.init);
+
             }
         } else {
 
@@ -116,39 +144,57 @@ var Board = {
 
 var Levels = {
 
-    GRID_SIZES: [8, 10, 11],
+    GRID_SIZES: [8, 10, 11, 12, 12, 20],
 
-    PARS: [4,4,7],
+    PARS: [4,4,7,7,7,14],
 
     GROUND_LINE: [
-        [6,7],
-        [8,9],
-        []
-    ],
+                    [6,7],
+                    [8,9],
+                    [],
+                    [],
+                    [],
+                    []
+                 ],
     PLATFORMS_X: [
-        [0,7],
-        [0,1,4,6,8,9,9,9],
-        [0,1,3,4,5,6,7,2,3,4,5,5,6,7,8,2,3,4,5,6,7,8,2,3,4,5,6,7,8]
-    ],
+                    [0,7],
+                    [0,1,3,4,6,8,9,9,9],
+                    [0,1,3,4,5,6,7,2,3,4,5,5,6,7,8,2,3,4,5,6,7,8,2,3,4,5,6,7,8],
+                    [0,1,2,3,4,5,6,7,8,11,0,1,2,3,4,5,6,8,11,11,11,0,1,2,3,4,5,6,7,8,0,1],
+                    [0,1,0,1,2,0,1,2,3,0,1,2,3,4,0,1,2,3,4,5,0,1,2,3,4,5,6,7,8,0,1,2,3,4,5,6,7,8,0,1,2,3,4,5,6,7,8],
+                    [1,1,2,3,4,5,6,7,8,11,12,13,14,15,16,9,10,11,5,2,3,4,5,6,6,7,8,9,10,11,12,4,14,1,2,3,4,11,12,13,14,7,7,8,9,10,14,11,12,13,14]
+                 ],
     PLATFORMS_Y: [
-        [5,5],
-        [7,7,5,4,3,2,3,7],
-        [2,2,6,6,6,6,6,8,8,8,8,7,8,8,8,9,9,9,9,9,9,9,10,10,10,10,10,10,10]
-    ],
+                    [5,5],
+                    [7,7,7,5,4,3,2,3,7],
+                    [2,2,6,6,6,6,6,8,8,8,8,7,8,8,8,9,9,9,9,9,9,9,10,10,10,10,10,10,10],
+                    [11,11,11,11,11,11,11,11,11,11,10,10,10,10,10,10,10,10,10,9,8,7,7,7,7,7,7,7,7,7,3,3],
+                    [4,4,5,5,5,6,6,6,6,7,7,7,7,7,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11],
+                    [2,3,3,3,3,5,5,5,5,6,6,6,6,6,6,7,7,7,8,9,9,9,9,9,10,10,10,12,12,12,12,13,13,14,14,14,14,14,14,14,14,15,16,16,16,16,17,18,18,18,18]
+                 ],
     P1_START: [
-        [2,2],
-        [9,1],
-        [0,1]
-    ],
+                [2,2],
+                [9,1],
+                [0,1],
+                [0,1],
+                [0,3],
+                [2,2]
+              ],
     P2_START: [
-        [5,0],
-        [9,6],
-        [4,5]
-    ],
+                [5,0],
+                [0,6],
+                [4,5],
+                [0,9],
+                [6,8],
+                [11,17]
+              ],
+
+    END_LEVEL: 5,
 
     render : function(level_num) {
         "use strict";
 
+        PS.color(PS.ALL, PS.ALL, Board.GAME_BACKGROUND)
         // Draw gorund lines
         for(var i = 0; i < Levels.GROUND_LINE[level_num].length; i++){
 
@@ -159,6 +205,7 @@ var Levels = {
 
             PS.color(Levels.PLATFORMS_X[level_num][j], Levels.PLATFORMS_Y[level_num][j], Board.GAME_FLOOR);
         }
+
 
         // Initialize P1
         P1.POS_X = Levels.P1_START[level_num][0];
@@ -367,12 +414,12 @@ Any value returned is ignored.
 
 
 PS.init = function( system, options ) {
-    "use strict"; // Do not remove this directive!
+	"use strict"; // Do not remove this directive!
 
-    // Uncomment the following code line
-    // to verify operation:
+	// Uncomment the following code line
+	// to verify operation:
 
-    // PS.debug( "PS.init() called\n" );
+	// PS.debug( "PS.init() called\n" );
 
     Board.GRID_LENGTH = Levels.GRID_SIZES[Board.CURRENT_LEVEL];
     Board.GRID_HEIGHT = Levels.GRID_SIZES[Board.CURRENT_LEVEL];
@@ -382,9 +429,9 @@ PS.init = function( system, options ) {
 
     PS.gridColor(Board.GAME_GRID);
 
-    PS.color(PS.ALL, PS.ALL, Board.GAME_BACKGROUND);
-
     PS.border(PS.ALL, PS.ALL, 0);
+
+    PS.gridShadow(0, PS.DEFAULT);
 
 
     PS.statusText( "Use A and D, or arrow keys to move" );
@@ -393,6 +440,8 @@ PS.init = function( system, options ) {
     PS.audioLoad("fx_powerup8");
     PS.audioLoad("fx_pop");
     PS.audioLoad("fx_tada");
+
+
 
 
     // Initialize game floor
@@ -405,20 +454,26 @@ PS.init = function( system, options ) {
     PS.glyph(1, 0, "ⓘ");
     PS.color(1, 0, 0xdeb76e);
     Board.CURRENT_MOVES = 0;
+    
 
-    /*
-        // Reset fade
-        if(Board.FADE_OUT_TIMER != "") {
-            PS.gridShadow(0, PS.COLOR_WHITE);
-            PS.fade(PS.ALL, PS.ALL, 0);
-            PS.borderFade(PS.ALL, PS.ALL, 0);
-        }
-    */
 
     // Timers
     P1.GRAVITY_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, P1.gravity);
     P2.GRAVITY_TIMER = PS.timerStart(Board.GRAVITY_FRAMES, P2.gravity);
     Board.END_TIMER = PS.timerStart(Board.END_FRAMES, Board.end);
+
+    if(Board.FADE_OUT_TIMER != ""){
+
+        PS.timerStop(Board.FADE_OUT_TIMER);
+        Board.FADE_OUT_TIMER = "";
+
+    }
+
+    // More info about how to play
+    if(Board.CURRENT_LEVEL == 1){
+
+        PS.statusText("Click the button on top left to reset the level");
+    }
 
 };
 
@@ -439,24 +494,26 @@ This function doesn't have to do anything. Any value returned is ignored.
 
 
 PS.touch = function( x, y, data, options ) {
-    "use strict"; // Do not remove this directive!
+	"use strict"; // Do not remove this directive!
 
-    // Uncomment the following code line
-    // to inspect x/y parameters:
+	// Uncomment the following code line
+	// to inspect x/y parameters:
 
-    // PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
+	// PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
 
-    // Rest button
-    if(x == 0 && y == 0){
+	// Rest button
+    if(Board.CURRENT_LEVEL <= Levels.END_LEVEL) {
+        if (x == 0 && y == 0) {
 
-        PS.timerStop(Board.END_TIMER);
-        PS.timerStop(P1.GRAVITY_TIMER);
-        PS.timerStop(P2.GRAVITY_TIMER);
+            PS.timerStop(Board.END_TIMER);
+            PS.timerStop(P1.GRAVITY_TIMER);
+            PS.timerStop(P2.GRAVITY_TIMER);
 
 
-        PS.audioPlay("fx_pop");
+            PS.audioPlay("fx_pop");
 
-        PS.init();
+            PS.init();
+        }
     }
 };
 
@@ -475,29 +532,41 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.release() event handler:
 
 /*
+
 PS.release = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line to inspect x/y parameters:
+
 	// PS.debug( "PS.release() @ " + x + ", " + y + "\n" );
+
 	// Add code here for when the mouse button/touch is released over a bead.
 };
+
 */
 
 
 
 PS.enter = function( x, y, data, options ) {
-    "use strict"; // Do not remove this directive!
+	"use strict"; // Do not remove this directive!
 
-    // Uncomment the following code line to inspect x/y parameters:
+	// Uncomment the following code line to inspect x/y parameters:
 
-    // PS.debug( "PS.enter() @ " + x + ", " + y + "\n" );
+	// PS.debug( "PS.enter() @ " + x + ", " + y + "\n" );
 
-    // Add code here for when the mouse cursor/touch enters a bead.
+	// Add code here for when the mouse cursor/touch enters a bead.
 
-    // Info button
-    if(x == 1 && y == 0){
+	// Info button
+	if(Board.CURRENT_LEVEL <= Levels.END_LEVEL) {
 
-        PS.statusText("Level par: "+ Levels.PARS[Board.CURRENT_LEVEL] +", Current move: "+ Board.CURRENT_MOVES);
+        if (x == 1 && y == 0) {
+
+            PS.statusText("Level par: " + Levels.PARS[Board.CURRENT_LEVEL] + ", Current move: " + Board.CURRENT_MOVES);
+        }
+        if (x == 0 && y == 0) {
+
+            PS.statusText("Click to reset level");
+        }
     }
 };
 
@@ -505,17 +574,50 @@ PS.enter = function( x, y, data, options ) {
 
 
 PS.exit = function( x, y, data, options ) {
-    "use strict"; // Do not remove this directive!
+	"use strict"; // Do not remove this directive!
 
-    // Uncomment the following code line to inspect x/y parameters:
+	// Uncomment the following code line to inspect x/y parameters:
 
-    // PS.debug( "PS.exit() @ " + x + ", " + y + "\n" );
+	// PS.debug( "PS.exit() @ " + x + ", " + y + "\n" );
 
-    // Add code here for when the mouse cursor/touch exits a bead.
-    if(x == 1 && y == 0){
+	// Add code here for when the mouse cursor/touch exits a bead.
 
-        PS.statusText( "Move with A and D, overlap white and black" );
+
+    // Info button
+    if(Board.CURRENT_LEVEL == 0) {
+
+        if (x == 1 && y == 0) {
+
+            PS.statusText("Move with A and D, overlap white and black");
+        }
+        if (x == 0 && y == 0) {
+
+            PS.statusText("Move with A and D, overlap white and black");
+        }
     }
+    else if(Board.CURRENT_LEVEL == 1){
+
+        if (x == 1 && y == 0) {
+
+            PS.statusText("Click the button on top left to reset the level");
+        }
+        if (x == 0 && y == 0) {
+
+            PS.statusText("Click the button on top left to reset the level");
+        }
+    }
+    else if(Board.CURRENT_LEVEL <= Levels.END_LEVEL){
+
+        if (x == 1 && y == 0) {
+
+            PS.statusText("Level par: " + Levels.PARS[Board.CURRENT_LEVEL]);
+        }
+        if (x == 0 && y == 0) {
+
+            PS.statusText("Level par: " + Levels.PARS[Board.CURRENT_LEVEL]);
+        }
+    }
+
 };
 
 
@@ -530,12 +632,17 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.exitGrid() event handler:
 
 /*
+
 PS.exitGrid = function( options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line to verify operation:
+
 	// PS.debug( "PS.exitGrid() called\n" );
+
 	// Add code here for when the mouse cursor/touch moves off the grid.
 };
+
 */
 
 /*
@@ -553,17 +660,17 @@ This function doesn't have to do anything. Any value returned is ignored.
 
 
 PS.keyDown = function( key, shift, ctrl, options ) {
-    "use strict"; // Do not remove this directive!
+	"use strict"; // Do not remove this directive!
 
-    // Uncomment the following code line to inspect first three parameters:
+	// Uncomment the following code line to inspect first three parameters:
 
-    //PS.debug( "PS.keyDown(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
+	//PS.debug( "PS.keyDown(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
 
-    // Add code here for when a key is pressed.
+	// Add code here for when a key is pressed.
 
 
-    // A key
-    if (key == 97 || key == 1005){
+	// A key
+	if (key == 97 || key == 1005){
 
 
         // Set velocities
@@ -630,13 +737,13 @@ This function doesn't have to do anything. Any value returned is ignored.
 
 
 PS.keyUp = function( key, shift, ctrl, options ) {
-    "use strict"; // Do not remove this directive!
+	"use strict"; // Do not remove this directive!
 
-    // Uncomment the following code line to inspect first three parameters:
+	// Uncomment the following code line to inspect first three parameters:
 
-    // PS.debug( "PS.keyUp(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
+	// PS.debug( "PS.keyUp(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
 
-    // Add code here for when a key is released.
+	// Add code here for when a key is released.
 };
 
 
@@ -653,16 +760,21 @@ NOTE: Currently, only mouse wheel events are reported, and only when the mouse c
 // UNCOMMENT the following code BLOCK to expose the PS.input() event handler:
 
 /*
+
 PS.input = function( sensors, options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code lines to inspect first parameter:
+
 //	 var device = sensors.wheel; // check for scroll wheel
 //
 //	 if ( device ) {
 //	   PS.debug( "PS.input(): " + device + "\n" );
 //	 }
+
 	// Add code here for when an input event is detected.
 };
+
 */
 
 /*
@@ -676,10 +788,15 @@ NOTE: This event is generally needed only by applications utilizing networked te
 // UNCOMMENT the following code BLOCK to expose the PS.shutdown() event handler:
 
 /*
+
 PS.shutdown = function( options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line to verify operation:
+
 	// PS.debug( "“Dave. My mind is going. I can feel it.”\n" );
+
 	// Add code here to tidy up when Perlenspiel is about to close.
 };
+
 */
