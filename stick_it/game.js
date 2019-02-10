@@ -41,47 +41,91 @@ var LEVELS = {
 	END_TIMER: "",
 	END_FRAMES: 20,
 
-	HEIGHT: [16],
-	WIDTH: [16],
+	HEIGHT: [16,16,14],
+	WIDTH: [16,16,16],
 	// x and y values
 	P_START: [
-	            [3,12]
-
-
+	            [3,12],
+	            [3,13],
+	            [3,11]
              ],
 	DOOR_POS: [
-	            [14,12]
+	            [14,12],
+	            [13,2],
+	            [8,6]
               ],
 
 	GROUND_X: [
-	            [0,1,2,3,4,5,11,12,13,14,15,0,1,2,3,4,5,11,12,13,14,15,0,1,2,3,4,5,11,12,13,14,15]
+	            [0,1,2,3,4,5,11,12,13,14,15,0,1,2,3,4,5,11,12,13,14,15,0,1,2,3,4,5,11,12,13,14,15],
+	            [11,12,13,14,15,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+	            [5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,7,8,9,10,11,15,5,6,7,8,9,10,11,15,15,15,15,0,1,2,3,4,5,15,0,1,2,3,4,5,15]
               ],
     GROUND_Y: [
-                [13,13,13,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15]
+                [13,13,13,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15],
+                [3,3,3,3,3,4,4,4,4,4,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15],
+                [0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,10,11,12,12,12,12,12,12,12,13,13,13,13,13,13,13]
               ],
+    PLATFORMS_X: [],
+    PLATFORMS_Y: [],
+
 
     render : function() {
         "use strict";
 
-        // Set up grid
-        PS.gridSize(LEVELS.WIDTH[LEVELS.CURRENT_LEVEL], LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]);
-        PS.color(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
-        PS.borderColor(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
+        // check if last level is complete
+        if(LEVELS.CURRENT_LEVEL == 3){
 
-        // Create ground
-        for(var i = 0; i < LEVELS.GROUND_X[LEVELS.CURRENT_LEVEL].length; i++){
+            PS.color(PS.ALL, PS.ALL, PLAYER.ACTIVE_COLOR);
+            PS.borderColor(PS.ALL, PS.ALL, PLAYER.ACTIVE_COLOR);
+            PS.gridColor(LEVELS.SKY_COLOR);
+            PS.statusColor(LEVELS.GROUND_COLOR);
 
-            PS.color(LEVELS.GROUND_X[LEVELS.CURRENT_LEVEL][i], LEVELS.GROUND_Y[LEVELS.CURRENT_LEVEL][i], LEVELS.GROUND_COLOR);
+            PS.audioPlay("fx_tada");
+
+            if(PLAYER.GRAVITY_TIMER != "") {
+
+                PS.timerStop(PLAYER.GRAVITY_TIMER);
+            }
+
+            if(PLAYER.STUCK_TIMER != "") {
+
+                PS.timerStop(PLAYER.STUCK_TIMER);
+            }
+
+            PS.timerStop(LEVELS.END_TIMER);
+
+        } else {
+
+            // Set up grid
+            PS.gridSize(LEVELS.WIDTH[LEVELS.CURRENT_LEVEL], LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]);
+            PS.gridColor(PLAYER.PLATFORM_COLOR);
+            PS.data(PS.ALL, PS.ALL, 0);
+            PS.color(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
+            PS.borderColor(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
+
+            // Create ground
+            for (var i = 0; i < LEVELS.GROUND_X[LEVELS.CURRENT_LEVEL].length; i++) {
+
+                PS.color(LEVELS.GROUND_X[LEVELS.CURRENT_LEVEL][i], LEVELS.GROUND_Y[LEVELS.CURRENT_LEVEL][i], LEVELS.GROUND_COLOR);
+            }
+
+            // Place the player on the level
+            PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
+            PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
+            PLAYER.render();
+
+            // Create exit door
+            LEVELS.makeDoor(LEVELS.DOOR_POS[LEVELS.CURRENT_LEVEL][0], LEVELS.DOOR_POS[LEVELS.CURRENT_LEVEL][1]);
+
+            // Place created platforms
+            if (LEVELS.PLATFORMS_X.length > 0) {
+
+                for (var m = 0; m < LEVELS.PLATFORMS_X.length; m++) {
+
+                    PS.color(LEVELS.PLATFORMS_X[m], LEVELS.PLATFORMS_Y[m], PLAYER.PLATFORM_COLOR);
+                }
+            }
         }
-
-        // Place the player on the level
-        PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
-        PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
-        PLAYER.render();
-
-        // Create exit door
-        LEVELS.makeDoor(LEVELS.DOOR_POS[LEVELS.CURRENT_LEVEL][0], LEVELS.DOOR_POS[LEVELS.CURRENT_LEVEL][1]);
-
     },
     makeDoor : function (x, y) {
         "use strict";
@@ -90,6 +134,9 @@ var LEVELS = {
         // Door part
         PS.color(x, y, LEVELS.DOOR_COLOR);
         PS.color(x, y-1, LEVELS.DOOR_COLOR);
+        PS.data(x, y, "door");
+        PS.data(x, y-1, "door");
+
 
         // Door frame
         PS.color(x-1, y, LEVELS.DOORFRAME_COLOR);
@@ -97,6 +144,11 @@ var LEVELS = {
         PS.color(x, y-2, LEVELS.DOORFRAME_COLOR);
         PS.color(x+1, y-1, LEVELS.DOORFRAME_COLOR);
         PS.color(x+1, y, LEVELS.DOORFRAME_COLOR);
+        PS.data(x-1, y, "doorframe");
+        PS.data(x-1, y-1, "doorframe");
+        PS.data(x, y-2, "doorframe");
+        PS.data(x+1, y-1, "doorframe");
+        PS.data(x+1, y, "doorframe");
 
 
     },
@@ -104,8 +156,13 @@ var LEVELS = {
     end : function () {
         "use strict";
 
-        if(PLAYER.POS_X == LEVELS.DOOR_POS[LEVELS.CURRENT_LEVEL][0] && PLAYER.POS_Y == LEVELS.DOOR_POS[LEVELS.CURRENT_LEVEL][1]){
+        if(PS.data(PLAYER.POS_X, PLAYER.POS_Y) == "door"){
 
+            // empty platform array
+            LEVELS.PLATFORMS_X = [];
+            LEVELS.PLATFORMS_Y = [];
+
+            LEVELS.CURRENT_LEVEL += 1;
             LEVELS.render();
         }
 
@@ -116,13 +173,13 @@ var PLAYER = {
 
 	ACTIVE_COLOR: 0Xff9084,
 	PLATFORM_COLOR: 0Xffd1cd,
+	STUCK_BORDER_COLOR: 0xA15F32,
 
 	POS_X: 0,
 	POS_Y: 0,
 
 	VELOCITY_X: 0,
     VELOCITY_Y: 0,
-    MAX_VELOCITY: 2,
 
     // Platforms placed by the player
 	PLATFORMS_X: [],
@@ -134,11 +191,18 @@ var PLAYER = {
     // Timer variables
     GRAVITY_TIMER: "",
     GRAVITY_FRAMES: 10,
+    STUCK_TIMER: "",
+    STUCK_FRAMES: 10,
 
     render : function() {
         "use strict";
 
         PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.ACTIVE_COLOR);
+
+        if(PLAYER.STUCK == true){
+
+            PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.STUCK_BORDER_COLOR);
+        }
 
     },
     moveX : function () {
@@ -146,25 +210,34 @@ var PLAYER = {
         var next_pos = PLAYER.POS_X + PLAYER.VELOCITY_X;
 
 
+        // check if in grid
         if((next_pos >= 0) && (next_pos < LEVELS.WIDTH[LEVELS.CURRENT_LEVEL])) {
 
+            // check if the next bead is not a ground
             if (PS.color(next_pos, PLAYER.POS_Y) != LEVELS.GROUND_COLOR) {
 
+                // stick if the next bead is a platform bead
                 if (PS.color(next_pos, PLAYER.POS_Y) == PLAYER.PLATFORM_COLOR) {
 
                     PLAYER.STUCK = true;
                     PLAYER.stick();
 
-                } else if(PS.color(next_pos, PLAYER.POS_Y) == PLAYER.DOORFRAME_COLOR){
+                }
+
+                // check if the player is on a door bead
+                else if(PS.data(PLAYER.POS_X, PLAYER.POS_Y) == "doorframe"){
+
 
                     // Change color of the old position
                     PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.DOORFRAME_COLOR);
-
-                    // Change color of new position
-                    PS.color(next_pos, PLAYER.POS_Y, PLAYER.ACTIVE_COLOR);
+                    PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
 
                     // Set the new position
                     PLAYER.POS_X = next_pos;
+
+                    // Change color of new position
+                    PLAYER.render();
+
                 }
 
 
@@ -172,12 +245,15 @@ var PLAYER = {
 
                     // Change color of the old position
                     PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
-
-                    // Change color of new position
-                    PS.color(next_pos, PLAYER.POS_Y, PLAYER.ACTIVE_COLOR);
+                    PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
 
                     // Set the new position
                     PLAYER.POS_X = next_pos;
+
+                    // Change color of new position
+                    PLAYER.render();
+
+
                 }
             }
         }
@@ -188,36 +264,47 @@ var PLAYER = {
         "use strict";
         var next_pos = PLAYER.POS_Y + PLAYER.VELOCITY_Y;
 
+        // check if in grid
         if((next_pos >= 0) && (next_pos < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL])) {
+
+            // check if the next bead is not a ground
             if (PS.color(PLAYER.POS_X, next_pos) != LEVELS.GROUND_COLOR) {
 
+                // stick if the next bead is a platform bead
                 if (PS.color(PLAYER.POS_X, next_pos) == PLAYER.PLATFORM_COLOR) {
 
                     PLAYER.STUCK = true;
                     PLAYER.stick();
 
-                } else if(PS.color(PLAYER.POS_X, next_pos) == PLAYER.DOORFRAME_COLOR){
+                }
+
+                // check if the player is on a door bead
+                else if(PS.data(PLAYER.POS_X, PLAYER.POS_Y) == "doorframe"){
+
 
                     // Change color of the old position
                     PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.DOORFRAME_COLOR);
-
-                    // Change color of new position
-                    PS.color(PLAYER.POS_X, next_pos, PLAYER.ACTIVE_COLOR);
+                    PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
 
                     // Set the new position
-                    PLAYER.POS_X = next_pos;
+                    PLAYER.POS_Y = next_pos;
+
+                    // Change color of new position
+                    PLAYER.render();
                 }
 
                 else {
 
                     // Change color of the old position
                     PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
-
-                    // Change color of new position
-                    PS.color(PLAYER.POS_X, next_pos, PLAYER.ACTIVE_COLOR);
+                    PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
 
                     // Set the new position
                     PLAYER.POS_Y = next_pos;
+
+                    // Change color of new position
+                    PLAYER.render();
+
                 }
             }
         }
@@ -229,21 +316,23 @@ var PLAYER = {
 
         var tempX, tempY;
 
-        if((PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == LEVELS.GROUND_COLOR) || (PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == PLAYER.PLATFORM_COLOR)) {
+        if((PLAYER.POS_Y + 1) < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]) {
 
-            for(var m = 0; m < 3; m++) {
+            if ((PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == LEVELS.GROUND_COLOR) || (PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == PLAYER.PLATFORM_COLOR)) {
 
-                tempX = PLAYER.POS_X;
-                tempY = PLAYER.POS_Y;
+                for (var m = 0; m < 3; m++) {
 
-
-                PS.fade(PLAYER.POS_X, PLAYER.POS_Y, 5, { onEnd : PLAYER.endJumpFade, params : [tempX, tempY]});
-
-                PLAYER.VELOCITY_Y = -1;
-
-                PLAYER.moveY();
+                    tempX = PLAYER.POS_X;
+                    tempY = PLAYER.POS_Y;
 
 
+                    PS.fade(PLAYER.POS_X, PLAYER.POS_Y, 5, {onEnd: PLAYER.endJumpFade, params: [tempX, tempY]});
+
+                    PLAYER.VELOCITY_Y = -1;
+
+                    PLAYER.moveY();
+
+                }
             }
         }
 
@@ -258,6 +347,102 @@ var PLAYER = {
     stick : function () {
         "use strict";
 
+        PLAYER.render();
+
+        if(PLAYER.GRAVITY_TIMER != "") {
+            PS.timerStop(PLAYER.GRAVITY_TIMER);
+            PLAYER.GRAVITY_TIMER = "";
+        }
+
+        PLAYER.STUCK_TIMER = PS.timerStart(PLAYER.STUCK_FRAMES, PLAYER.lookAroundStuck);
+
+
+
+    },
+
+    lookAroundStuck : function () {
+        "use strict";
+
+        for (var i = -1; i < 2; i += 1) {
+
+            // Check if in grid
+            if ((PLAYER.POS_X + i) >= 0 && (PLAYER.POS_X + i) < LEVELS.WIDTH[LEVELS.CURRENT_LEVEL]) {
+
+                var current_x = PLAYER.POS_X + i; // Store current x that is being checked
+
+                for (var j = -1; j < 2; j += 1) {
+
+                    // Check if in grid
+                    if ((PLAYER.POS_Y + j) >= 0 && (PLAYER.POS_Y + j) < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]) {
+
+
+                        var current_y = PLAYER.POS_Y + j; // Store current y that is being checked
+
+                        if (i == PLAYER.POS_X && j == PLAYER.POS_Y) {
+                            // do nothing if it is checking itself
+                        }
+
+                        else if(PS.color(current_x, current_y) == PLAYER.PLATFORM_COLOR){
+
+
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        if(PLAYER.GRAVITY_TIMER == ""){
+
+            PLAYER.STUCK = false;
+            PLAYER.GRAVITY_TIMER = PS.timerStart(PLAYER.GRAVITY_FRAMES, PLAYER.gravity);
+
+            PS.timerStop(PLAYER.STUCK_TIMER);
+            PLAYER.STUCK_TIMER = "";
+        }
+
+    },
+
+    // Checks if there are ground or platform beads around the player
+    lookAroundPlatform : function () {
+        "use strict";
+
+        for (var i = -1; i < 2; i += 2) {
+
+            // Check if in grid
+            if ((PLAYER.POS_X + i) >= 0 && (PLAYER.POS_X + i) < LEVELS.WIDTH[LEVELS.CURRENT_LEVEL]) {
+
+                var current_x = PLAYER.POS_X + i; // Store current x that is being checked
+
+                if (PS.color(current_x, PLAYER.POS_Y) == PLAYER.PLATFORM_COLOR) {
+
+                    return true;
+                }
+
+                else if (PS.color(current_x, PLAYER.POS_Y) == LEVELS    .GROUND_COLOR) {
+
+                    return true;
+                }
+            }
+        }
+
+        for (var j = -1; j < 2; j += 2) {
+
+            // Check if in grid
+            if ((PLAYER.POS_Y + j) >= 0 && (PLAYER.POS_Y + j) < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]) {
+
+                var current_y = PLAYER.POS_Y + j; // Store current y that is being checked
+
+                if (PS.color(PLAYER.POS_X, current_y) == PLAYER.PLATFORM_COLOR) {
+
+                    return true;
+                }
+                else if (PS.color(PLAYER.POS_X, current_y) == LEVELS.GROUND_COLOR) {
+
+                    return true;
+                }
+            }
+        }
+        return false;
 
     },
 
@@ -298,9 +483,13 @@ PS.init = function( system, options ) {
 
 	//PS.debug( "PS.init() called\n" );
 
-    PS.statusText( "Stick It" );
+    PS.statusText( "Stick It!" );
+
 
     LEVELS.render();
+
+    // Audio
+    PS.audioLoad("fx_tada");
 
     // Timers
     PLAYER.GRAVITY_TIMER = PS.timerStart(PLAYER.GRAVITY_FRAMES, PLAYER.gravity);
@@ -464,10 +653,8 @@ PS.keyDown = function( key, shift, ctrl, options ) {
     if (key == 97 || key == 1005) {
 
         // Set velocity
-        if ((PLAYER.VELOCITY_X * -1) < PLAYER.MAX_VELOCITY) {
 
-            PLAYER.VELOCITY_X -= 1;
-        }
+        PLAYER.VELOCITY_X = -1;
 
         // Move
         PLAYER.moveX();
@@ -476,33 +663,64 @@ PS.keyDown = function( key, shift, ctrl, options ) {
     // D key, right arrow
     if (key == 100 || key == 1007) {
 
-
         // Set velocity
-        if(PLAYER.VELOCITY_X < PLAYER.MAX_VELOCITY) {
-
-            PLAYER.VELOCITY_X += 1;
-        }
+        PLAYER.VELOCITY_X = 1;
 
         // Move
         PLAYER.moveX();
     }
 
-    // A key, up arrow
+    // W key, up arrow
     if (key == 119 || key == 1006) {
 
-        PLAYER.jump();
+        if(PLAYER.STUCK == true){
+
+            //bug fix
+            PLAYER.VELOCITY_Y = 0;
+
+            // Set velocity
+            PLAYER.VELOCITY_Y -= 1;
+
+            // Move
+            PLAYER.moveY();
+
+        } else {
+
+            PLAYER.jump();
+        }
+    }
+
+    // S key, down arrow
+    if (key == 115 || key == 1008) {
+
+
+        // Set velocity
+        PLAYER.VELOCITY_Y = 1;
+
+        // Move
+        PLAYER.moveY();
     }
 
     // Space key
     if (key == 32) {
 
-        // Create a platform on player position
-        PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.PLATFORM_COLOR);
+        if(PLAYER.lookAroundPlatform()) {
 
-        // Place player on initial position
-        PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
-        PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
-        PLAYER.render();
+            // Create a platform on player position
+            PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.PLATFORM_COLOR);
+            PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
+
+            // Put platform coordinates in the array
+            LEVELS.PLATFORMS_X.push(PLAYER.POS_X);
+            LEVELS.PLATFORMS_Y.push(PLAYER.POS_Y);
+
+            // Place player on initial position
+            PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
+            PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
+
+            PLAYER.STUCK = false;
+            PLAYER.render();
+        }
 
     }
 };
@@ -543,6 +761,15 @@ PS.keyUp = function( key, shift, ctrl, options ) {
 
         // Set velocity
         PLAYER.VELOCITY_X = 0;
+    }
+
+
+    // S key, right arrow
+    if (key == 115 || key == 1008) {
+
+
+        // Set velocity
+        PLAYER.VELOCITY_Y = 0;
     }
 
 
