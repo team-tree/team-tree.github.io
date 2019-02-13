@@ -34,37 +34,62 @@ var LEVELS = {
 	SKY_COLOR: 0xa6fff6,
 	DOOR_COLOR: 0X000000,
 	DOORFRAME_COLOR: 0Xfff83f,
+	STONE_COLOR: 0x7F7F7F,
 
 	CURRENT_LEVEL: 0,
 
 	// Timers
 	END_TIMER: "",
-	END_FRAMES: 20,
+	END_FRAMES: 10,
 
-	HEIGHT: [16,16,14],
-	WIDTH: [16,16,16],
+    WIDTH: [16,16,16,9,11],
+	HEIGHT: [16,16,14,12,12],
+
 	// x and y values
 	P_START: [
 	            [3,12],
 	            [3,13],
-	            [3,11]
+	            [3,11],
+	            [1,10],
+	            [1,10]
              ],
 	DOOR_POS: [
 	            [14,12],
 	            [13,2],
-	            [8,6]
+	            [8,6],
+	            [7,2],
+	            [5,2]
               ],
 
 	GRASS_X: [
 	            [0,1,2,3,4,5,11,12,13,14,15,0,1,2,3,4,5,11,12,13,14,15,0,1,2,3,4,5,11,12,13,14,15],
 	            [11,12,13,14,15,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-	            [5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,7,8,9,10,11,15,5,6,7,8,9,10,11,15,15,15,15,0,1,2,3,4,5,15,0,1,2,3,4,5,15]
+	            [5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,7,8,9,10,11,15,5,6,7,8,9,10,11,15,15,15,15,0,1,2,3,4,5,15,0,1,2,3,4,5,15],
+	            [6,2,6,2,6,2],
+	            [1,9,5]
               ],
     GRASS_Y: [
                 [13,13,13,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15],
                 [3,3,3,3,3,4,4,4,4,4,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15],
-                [0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,10,11,12,12,12,12,12,12,12,13,13,13,13,13,13,13]
+                [0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,10,11,12,12,12,12,12,12,12,13,13,13,13,13,13,13],
+                [3,4,5,6,7,8],
+                [7,7,11]
               ],
+    STONE_X: [
+                [],
+                [],
+                [],
+                [0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,3,4,5,6,7,8],
+                [3,4,5,6,7,0,2,8,10,0,1,2,3,4,6,7,8,9,10]
+             ],
+    STONE_Y: [
+                [],
+                [],
+                [],
+                [3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,8,11,11,11,11,11,11,11,11,11],
+                [3,3,3,3,3,7,7,7,7,11,11,11,11,11,11,11,11,11,11]
+             ],
+
     PLATFORMS_X: [],
     PLATFORMS_Y: [],
 
@@ -72,13 +97,14 @@ var LEVELS = {
     render : function() {
         "use strict";
 
-        // check if last level is complete
-        if(LEVELS.CURRENT_LEVEL == 3){
+        // check if final level is complete
+        if(LEVELS.CURRENT_LEVEL == LEVELS.HEIGHT.length){
 
             PS.color(PS.ALL, PS.ALL, PLAYER.ACTIVE_COLOR);
             PS.borderColor(PS.ALL, PS.ALL, PLAYER.ACTIVE_COLOR);
             PS.gridColor(LEVELS.SKY_COLOR);
             PS.statusColor(LEVELS.GRASS_COLOR);
+            PS.gridShadow(1, PS.COLOR_WHITE);
 
             PS.audioPlay("fx_tada");
 
@@ -101,18 +127,27 @@ var LEVELS = {
             PS.gridColor(PLAYER.PLATFORM_COLOR);
             PS.data(PS.ALL, PS.ALL, 0);
             PS.color(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
-            PS.borderColor(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
+            PS.border(PS.ALL, PS.ALL, 0);
 
-            // Create ground
+
+            // Create grass
             for (var i = 0; i < LEVELS.GRASS_X[LEVELS.CURRENT_LEVEL].length; i++) {
 
-                PS.color(LEVELS.GRASS_X[LEVELS.CURRENT_LEVEL][i], LEVELS.GRASS_Y[LEVELS.CURRENT_LEVEL][i], LEVELS.GRASS_COLOR);
+                if(LEVELS.GRASS_X[LEVELS.CURRENT_LEVEL].length > 0) {
+
+                    PS.color(LEVELS.GRASS_X[LEVELS.CURRENT_LEVEL][i], LEVELS.GRASS_Y[LEVELS.CURRENT_LEVEL][i], LEVELS.GRASS_COLOR);
+                }
             }
 
-            // Place the player on the level
-            PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
-            PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
-            PLAYER.render();
+            // Create stone
+            for (var j = 0; j < LEVELS.STONE_X[LEVELS.CURRENT_LEVEL].length; j++) {
+
+                if(LEVELS.STONE_X[LEVELS.CURRENT_LEVEL].length > 0) {
+
+                    PS.color(LEVELS.STONE_X[LEVELS.CURRENT_LEVEL][j], LEVELS.STONE_Y[LEVELS.CURRENT_LEVEL][j], LEVELS.STONE_COLOR);
+                }
+            }
+
 
             // Create exit door
             LEVELS.makeDoor(LEVELS.DOOR_POS[LEVELS.CURRENT_LEVEL][0], LEVELS.DOOR_POS[LEVELS.CURRENT_LEVEL][1]);
@@ -122,9 +157,17 @@ var LEVELS = {
 
                 for (var m = 0; m < LEVELS.PLATFORMS_X.length; m++) {
 
-                    PS.color(LEVELS.PLATFORMS_X[m], LEVELS.PLATFORMS_Y[m], PLAYER.PLATFORM_COLOR);
+                    if(LEVELS.PLATFORMS_X[m] != -1) {
+
+                        PS.color(LEVELS.PLATFORMS_X[m], LEVELS.PLATFORMS_Y[m], PLAYER.PLATFORM_COLOR);
+                    }
                 }
             }
+
+            // Place the player on the level
+            PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
+            PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
+            PLAYER.render();
         }
     },
     makeDoor : function (x, y) {
@@ -153,6 +196,7 @@ var LEVELS = {
 
     },
 
+    // Level end condition
     end : function () {
         "use strict";
 
@@ -173,7 +217,7 @@ var PLAYER = {
 
 	ACTIVE_COLOR: 0Xff9084,
 	PLATFORM_COLOR: 0Xffd1cd,
-	STUCK_BORDER_COLOR: 0xA15F32,
+	STUCK_BORDER_COLOR: 0xFF5148,
 
 	POS_X: 0,
 	POS_Y: 0,
@@ -187,10 +231,11 @@ var PLAYER = {
 
     // Flag to change if the player sticks to the platforms
     STUCK: false,
+    ERASE_COUNT: 0,
 
     // Timer variables
     GRAVITY_TIMER: "",
-    GRAVITY_FRAMES: 10,
+    GRAVITY_FRAMES: 15,
     STUCK_TIMER: "",
     STUCK_FRAMES: 10,
 
@@ -201,7 +246,12 @@ var PLAYER = {
 
         if(PLAYER.STUCK == true){
 
+            PS.border(PLAYER.POS_X, PLAYER.POS_Y, 3);
             PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.STUCK_BORDER_COLOR);
+        }
+        else if(PLAYER.STUCK == false){
+
+            PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
         }
 
     },
@@ -213,8 +263,8 @@ var PLAYER = {
         // check if in grid
         if((next_pos >= 0) && (next_pos < LEVELS.WIDTH[LEVELS.CURRENT_LEVEL])) {
 
-            // check if the next bead is not a ground
-            if (PS.color(next_pos, PLAYER.POS_Y) != LEVELS.GRASS_COLOR) {
+            // check if the next bead is not a grass
+            if (PS.color(next_pos, PLAYER.POS_Y) != LEVELS.GRASS_COLOR && PS.color(next_pos, PLAYER.POS_Y) != LEVELS.STONE_COLOR) {
 
                 // stick if the next bead is a platform bead
                 if (PS.color(next_pos, PLAYER.POS_Y) == PLAYER.PLATFORM_COLOR) {
@@ -222,18 +272,49 @@ var PLAYER = {
                     PLAYER.STUCK = true;
                     PLAYER.stick();
 
+                    // erase blocks
+                    PLAYER.erase(next_pos, PLAYER.POS_Y);
+                    PLAYER.ERASE_COUNT += 1;
                 }
 
-                // check if the player is on a door bead
+                // check if the player is on a door frame bead
                 else if(PS.data(PLAYER.POS_X, PLAYER.POS_Y) == "doorframe"){
 
 
                     // Change color of the old position
                     PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.DOORFRAME_COLOR);
-                    PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
+                    PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
 
                     // Set the new position
                     PLAYER.POS_X = next_pos;
+
+                    // Finish erasing
+                    if(PLAYER.ERASE_COUNT != 0){
+
+                        PLAYER.endErase();
+                    }
+
+                    // Change color of new position
+                    PLAYER.render();
+
+                }
+
+                // check if the player is on a door bead
+                else if(PS.data(PLAYER.POS_X, PLAYER.POS_Y) == "door"){
+
+
+                    // Change color of the old position
+                    PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.DOOR_COLOR);
+                    PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
+
+                    // Set the new position
+                    PLAYER.POS_X = next_pos;
+
+                    // Finish erasing
+                    if(PLAYER.ERASE_COUNT != 0){
+
+                        PLAYER.endErase();
+                    }
 
                     // Change color of new position
                     PLAYER.render();
@@ -245,14 +326,20 @@ var PLAYER = {
 
                     // Change color of the old position
                     PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
-                    PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
+                    PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
 
                     // Set the new position
                     PLAYER.POS_X = next_pos;
 
+
+                    // Finish erasing
+                    if(PLAYER.ERASE_COUNT != 0){
+
+                        PLAYER.endErase();
+                    }
+
                     // Change color of new position
                     PLAYER.render();
-
 
                 }
             }
@@ -267,8 +354,8 @@ var PLAYER = {
         // check if in grid
         if((next_pos >= 0) && (next_pos < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL])) {
 
-            // check if the next bead is not a ground
-            if (PS.color(PLAYER.POS_X, next_pos) != LEVELS.GRASS_COLOR) {
+            // check if the next bead is not a grass
+            if (PS.color(PLAYER.POS_X, next_pos) != LEVELS.GRASS_COLOR && PS.color(PLAYER.POS_X, next_pos) != LEVELS.STONE_COLOR) {
 
                 // stick if the next bead is a platform bead
                 if (PS.color(PLAYER.POS_X, next_pos) == PLAYER.PLATFORM_COLOR) {
@@ -276,18 +363,50 @@ var PLAYER = {
                     PLAYER.STUCK = true;
                     PLAYER.stick();
 
+                    // erase blocks
+                    PLAYER.erase(PLAYER.POS_X, next_pos);
+                    PLAYER.ERASE_COUNT += 1;
+
+
                 }
 
-                // check if the player is on a door bead
+                // check if the player is on a door frame bead
                 else if(PS.data(PLAYER.POS_X, PLAYER.POS_Y) == "doorframe"){
 
 
                     // Change color of the old position
                     PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.DOORFRAME_COLOR);
-                    PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
+                    PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
 
                     // Set the new position
                     PLAYER.POS_Y = next_pos;
+
+                    // Finish erasing
+                    if(PLAYER.ERASE_COUNT != 0){
+
+                        PLAYER.endErase();
+                    }
+
+                    // Change color of new position
+                    PLAYER.render();
+                }
+
+                // check if the player is on a door bead
+                else if(PS.data(PLAYER.POS_X, PLAYER.POS_Y) == "door"){
+
+
+                    // Change color of the old position
+                    PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.DOOR_COLOR);
+                    PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
+
+                    // Set the new position
+                    PLAYER.POS_Y = next_pos;
+
+                    // Finish erasing
+                    if(PLAYER.ERASE_COUNT != 0){
+
+                        PLAYER.endErase();
+                    }
 
                     // Change color of new position
                     PLAYER.render();
@@ -297,10 +416,16 @@ var PLAYER = {
 
                     // Change color of the old position
                     PS.color(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
-                    PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
+                    PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
 
                     // Set the new position
                     PLAYER.POS_Y = next_pos;
+
+                    // Finish erasing
+                    if(PLAYER.ERASE_COUNT != 0){
+
+                        PLAYER.endErase();
+                    }
 
                     // Change color of new position
                     PLAYER.render();
@@ -318,7 +443,7 @@ var PLAYER = {
 
         if((PLAYER.POS_Y + 1) < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]) {
 
-            if ((PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == LEVELS.GRASS_COLOR) || (PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == PLAYER.PLATFORM_COLOR)) {
+            if ((PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == LEVELS.GRASS_COLOR) || (PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == PLAYER.PLATFORM_COLOR) || (PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == LEVELS.STONE_COLOR)) {
 
                 for (var m = 0; m < 3; m++) {
 
@@ -326,7 +451,7 @@ var PLAYER = {
                     tempY = PLAYER.POS_Y;
 
 
-                    PS.fade(PLAYER.POS_X, PLAYER.POS_Y, 5, {onEnd: PLAYER.endJumpFade, params: [tempX, tempY]});
+                    PS.fade(PLAYER.POS_X, PLAYER.POS_Y, 8, {onEnd: PLAYER.endJumpFade, params: [tempX, tempY]});
 
                     PLAYER.VELOCITY_Y = -1;
 
@@ -335,6 +460,82 @@ var PLAYER = {
                 }
             }
         }
+
+    },
+
+    erase : function (x, y) {
+        "use strict";
+
+        // Erasing a platform
+        if(PLAYER.ERASE_COUNT == 0){
+
+            PLAYER.endErase();
+            PS.audioPlay("fx_squish");
+        }
+
+        else if(PLAYER.ERASE_COUNT == 1){
+
+            PS.data(x, y, 1);
+            PS.border(x, y, 5);
+            PS.borderColor(x, y, LEVELS.SKY_COLOR);
+            PS.audioPlay("xylo_a4");
+        }
+
+        else if(PLAYER.ERASE_COUNT == 2 && PS.data(x, y) == 1){
+
+            PS.data(x, y, 2);
+            PS.border(x, y, 15);
+            PS.borderColor(x, y, LEVELS.SKY_COLOR);
+            PS.audioPlay("xylo_bb4");
+        }
+
+        else if(PLAYER.ERASE_COUNT == 3 && PS.data(x, y) == 2){
+
+            PS.data(x, y, 3);
+            PS.border(x, y, 0);
+
+        }
+
+        else{
+
+            PLAYER.endErase();
+        }
+
+        // delete the platform
+        if(PS.data(x, y) == 3){
+
+            PS.color(x, y, LEVELS.SKY_COLOR);
+            PS.audioPlay("perc_bongo_low");
+
+            for(var i = 0; i < LEVELS.PLATFORMS_X.length; i++){
+
+                if(LEVELS.PLATFORMS_X[i] == x && LEVELS.PLATFORMS_Y[i] == y){
+
+                    LEVELS.PLATFORMS_X[i] = -1;
+                    LEVELS.PLATFORMS_Y[i] = -1;
+                }
+            }
+        }
+    },
+
+    endErase : function () {
+        "use strict";
+
+        PS.border(PS.ALL, PS.ALL, 0);
+        PLAYER.ERASE_COUNT = 0;
+
+        if(LEVELS.PLATFORMS_X.length > 0) {
+
+            for (var i = 0; i < LEVELS.PLATFORMS_X.length; i++) {
+
+                if(LEVELS.PLATFORMS_X[i] != -1) {
+
+                    PS.data(LEVELS.PLATFORMS_X[i], LEVELS.PLATFORMS_Y[i], 0)
+                }
+            }
+        }
+
+        PLAYER.render();
 
     },
 
@@ -355,8 +556,6 @@ var PLAYER = {
         }
 
         PLAYER.STUCK_TIMER = PS.timerStart(PLAYER.STUCK_FRAMES, PLAYER.lookAroundStuck);
-
-
 
     },
 
@@ -391,9 +590,12 @@ var PLAYER = {
                 }
             }
         }
+        PLAYER.STUCK = false;
+        PLAYER.render();
+
+
         if(PLAYER.GRAVITY_TIMER == ""){
 
-            PLAYER.STUCK = false;
             PLAYER.GRAVITY_TIMER = PS.timerStart(PLAYER.GRAVITY_FRAMES, PLAYER.gravity);
 
             PS.timerStop(PLAYER.STUCK_TIMER);
@@ -402,7 +604,7 @@ var PLAYER = {
 
     },
 
-    // Checks if there are ground or platform beads around the player
+    // Checks if there are grass or platform beads around the player
     lookAroundPlatform : function () {
         "use strict";
 
@@ -418,7 +620,7 @@ var PLAYER = {
                     return true;
                 }
 
-                else if (PS.color(current_x, PLAYER.POS_Y) == LEVELS    .GRASS_COLOR) {
+                else if (PS.color(current_x, PLAYER.POS_Y) == LEVELS.GRASS_COLOR) {
 
                     return true;
                 }
@@ -457,7 +659,7 @@ var PLAYER = {
 
             LEVELS.render();
 
-        } else if(PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) != LEVELS.GRASS_COLOR){
+        } else if(PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) != LEVELS.GRASS_COLOR && PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) != LEVELS.STONE_COLOR){
 
             PLAYER.VELOCITY_Y = 1;
 
@@ -466,8 +668,7 @@ var PLAYER = {
         } else {
 
             PLAYER.VELOCITY_Y = 0;
-            //Testing
-            //PS.debug("second passed : "+PLAYER.VELOCITY_Y+"\n");
+
         }
     }
 
@@ -490,6 +691,11 @@ PS.init = function( system, options ) {
 
     // Audio
     PS.audioLoad("fx_tada");
+    PS.audioLoad("fx_tick");
+    PS.audioLoad("fx_squish");
+    PS.audioLoad("xylo_a4");
+    PS.audioLoad("xylo_bb4");
+    PS.audioLoad("perc_bongo_low");
 
     // Timers
     PLAYER.GRAVITY_TIMER = PS.timerStart(PLAYER.GRAVITY_FRAMES, PLAYER.gravity);
@@ -708,11 +914,14 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 
             // Create a platform on player position
             PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.PLATFORM_COLOR);
-            PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, LEVELS.SKY_COLOR);
+            PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
 
             // Put platform coordinates in the array
             LEVELS.PLATFORMS_X.push(PLAYER.POS_X);
             LEVELS.PLATFORMS_Y.push(PLAYER.POS_Y);
+
+            // Play sound
+            PS.audioPlay("fx_tick");
 
             // Place player on initial position
             PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
