@@ -129,6 +129,13 @@ var LEVELS = {
             PS.color(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
             PS.border(PS.ALL, PS.ALL, 0);
 
+            if(LEVELS.CURRENT_LEVEL == 0){
+
+                PS.statusText("WASD to move, Space bar to leave mark");
+            } else {
+                PS.statusText("Stick it!");
+            }
+
 
             // Create grass
             for (var i = 0; i < LEVELS.GRASS_X[LEVELS.CURRENT_LEVEL].length; i++) {
