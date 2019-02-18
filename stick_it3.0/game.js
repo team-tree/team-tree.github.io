@@ -1,106 +1,342 @@
 /*
 game.js for Perlenspiel 3.3.x
 Last revision: 2018-10-14 (BM)
+
 Perlenspiel is a scheme by Professor Moriarty (bmoriarty@wpi.edu).
 This version of Perlenspiel (3.3.x) is hosted at <https://ps3.perlenspiel.net>
 Perlenspiel is Copyright © 2009-18 Worcester Polytechnic Institute.
 This file is part of the standard Perlenspiel 3.3.x devkit distribution.
+
 Perlenspiel is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
+
 Perlenspiel is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU Lesser General Public License for more details.
+
 You may have received a copy of the GNU Lesser General Public License
 along with the Perlenspiel devkit. If not, see <http://www.gnu.org/licenses/>.
 */
 
 var HUB  = {
 
-    GRID_HEIGHT: 10,
-    GRID_LENGTH: 10,
+	GRID_HEIGHT: 16,
+	GRID_LENGTH: 16,
+	IN_HUB: false,
+	IMAGE: "",
+
+    // Start position in the hub
+    left: 0,
+    top: 21,
+    width: 16,
+    height: 36,
+
+    // Placed platforms
+    PLATFORMS_X: [],
+    PLATFORMS_Y: [],
+    EXITED: [],
+
+    // Doors
+    DOORS_X: [4,4,11,11,4,4,17,17,21,21,25,25,20,20,21,21,21,22,22],
+    DOORS_Y: [31,30,27,26,15,14,20,19,23,22,20,19,8,78,7,6,8,7],
+    DOOR_TIMER: "",
+    DOOR_FRAMES: 5,
+
+	loadHUB : function () {
+        "use strict";
+
+        //bug fix
+        LEVELS.CURRENT_LEVEL = 1;
+
+        HUB.IMAGE = PS.imageLoad("images/hub_world.bmp", HUB.render);
+        PS.gridSize(HUB.GRID_LENGTH, HUB.GRID_HEIGHT);
+        PS.border(PS.ALL, PS.ALL, 0);
+        HUB.IN_HUB = true;
+        HUB.EXITED = [];
+
+    },
+
+    render : function (image) {
+        "use strict";
+
+        var flag = PS.imageBlit(image, 0, 0, HUB);
+
+        if (flag == true){
+
+            HUB.IN_HUB = true;
+        }
+
+        if(HUB.PLATFORMS_X.length > 0) {
+
+            for (var i = 0; i < HUB.PLATFORMS_X.length; i += 1) {
+
+                if (HUB.inCamera(HUB.PLATFORMS_X[i], HUB.PLATFORMS_Y[i])) {
+
+                    if(HUB.PLATFORMS_X[i] != -1) {
+
+                        PS.color(HUB.PLATFORMS_X[i] - HUB.left, HUB.PLATFORMS_Y[i] - HUB.top, PLAYER.PLATFORM_COLOR);
+                    }
+                }
+            }
+        }
+
+        PLAYER.render();
+
+    },
+
+    moveCameraX : function () {
+        "use strict";
+
+        // move left
+        if(PLAYER.POS_X < 4 && HUB.left != 0){
+
+            HUB.left -= 1;
+            HUB.width -= 1;
+            PLAYER.POS_X += 1;
+
+            HUB.loadHUB();
+
+            //Testing
+            //PS.debug("\nleft " + PLAYER.POS_X + ", " + PLAYER.POS_Y);
+        }
+
+        //move right
+        else if(HUB.width - (PLAYER.POS_X + HUB.left) < 4 && HUB.width < 32){
+
+            HUB.left += 1;
+            HUB.width += 1;
+            PLAYER.POS_X -= 1;
+
+            HUB.loadHUB();
+
+            //Testing
+            //PS.debug("\nright " + PLAYER.POS_X + ", " + PLAYER.POS_Y);
+            //PS.debug("\nlimit " + HUB.width + ", " + HUB.left);
+        }
+
+
+    },
+
+    moveCameraY: function () {
+        "use strict";
+
+        // move up
+        if(PLAYER.POS_Y < 4 && HUB.top != 0){
+
+            HUB.top -= 1;
+            HUB.height -= 1;
+            PLAYER.POS_Y += 1;
+
+            HUB.loadHUB();
+
+            //Testing
+            //PS.debug("\nup " + PLAYER.POS_X + ", " + PLAYER.POS_Y);
+        }
+
+        //move down
+        else if(PLAYER.POS_Y > 13 && HUB.height < 37){
+
+            HUB.top += 1;
+            HUB.height += 1;
+            PLAYER.POS_Y -= 1;
+
+            HUB.loadHUB();
+
+            //Testing
+            //PS.debug("\ndown " + PLAYER.POS_X + ", " + PLAYER.POS_Y);
+        }
+    },
+
+    inCamera : function (x, y) {
+        "use strict";
+
+        if(x <= HUB.width && x >= HUB.left){
+            if(y <= HUB.height && y >= HUB.top){
+
+                return true
+            }
+            else return false;
+        }
+        else return false;
+    },
+
+    checkDoor : function () {
+        "use strict";
+        for(var i = 0; i < HUB.DOORS_X.length; i += 1){
+
+            if((PLAYER.POS_X + HUB.left) == HUB.DOORS_X[i] && (PLAYER.POS_Y + HUB.top) == HUB.DOORS_Y[i]){
+
+                // Set level number
+                if(i == 0 || i == 1){
+
+                    HUB.IN_HUB = false;
+                    HUB.PLATFORMS_X = [];
+                    HUB.PLATFORMS_Y = [];
+
+                    // Store exiting coordinates
+                    HUB.EXITED[0] = PLAYER.POS_X;
+                    HUB.EXITED[1] = PLAYER.POS_Y;
+
+                    LEVELS.CURRENT_LEVEL = 0;
+                    LEVELS.render();
+                    PS.timerStop(HUB.DOOR_TIMER);
+                }
+                else{
+
+                    HUB.IN_HUB = false;
+                    HUB.PLATFORMS_X = [];
+                    HUB.PLATFORMS_Y = [];
+
+                    // Store exiting coordinates
+                    HUB.EXITED[0] = PLAYER.POS_X;
+                    HUB.EXITED[1] = PLAYER.POS_Y;
+
+                    LEVELS.CURRENT_LEVEL = Math.floor(i / 2);
+                    LEVELS.render();
+                    PS.timerStop(HUB.DOOR_TIMER);
+                }
+            }
+
+        }
+    }
+
+/*
+    centerCamera : function (x, y) {
+        "use strict";
+
+        if(x > 8 && x <= 24){
+
+            HUB.left = x - 8;
+            HUB.width = x + 8;
+        } else if(x > 24){
+
+            HUB.left = 16;
+            HUB.width = 31;
+
+        } else {
+            HUB.left = 0;
+            HUB.width = 16;
+        }
+
+        if(y < 29 && y > 8){
+            HUB.top = y - 8;
+            HUB.height = y + 8;
+        } else {
+            HUB.top = 21;
+            HUB.height = 36;
+        }
+    }
+    */
 
 };
 
 var LEVELS = {
 
-    GRASS_COLOR: 0X35c74c,
-    SKY_COLOR: 0xa6fff6,
-    DOOR_COLOR: 0X000000,
-    DOORFRAME_COLOR: 0Xfff83f,
-    STONE_COLOR: 0x7F7F7F,
+    GRID_BACKGROUND_COLOR: 0xFFC8B6,
+	GRASS_COLOR: 0X35c74c,
+	SKY_COLOR: 0xa6fff6,
+	DOOR_COLOR: 0X000000,
+	DOORFRAME_COLOR: 0Xfff83f,
+	STONE_COLOR: 0x7F7F7F,
 
-    CURRENT_LEVEL: 0,
+	CURRENT_LEVEL: 0,
 
-    // Timers
-    END_TIMER: "",
-    END_FRAMES: 10,
+	// Timers
+	END_TIMER: "",
+	END_FRAMES: 10,
 
-    WIDTH: [16,16,16,11,9],
-    HEIGHT: [16,16,14,12,12],
+    WIDTH: [13,16,16,16,11,9],
+	HEIGHT: [14,16,16,14,12,12],
 
-    // x and y values
-    P_START: [
-        [3,12],
-        [3,13],
-        [3,11],
-        [1,10],
-        [1,10]
-    ],
-    DOOR_POS: [
-        [14,12],
-        [13,2],
-        [8,6],
-        [5,2],
-        [7,2]
-    ],
+	// x and y values
+	P_START: [
+	            [1,12],
+	            [2,12],
+	            [3,13],
+	            [3,11],
+	            [1,10],
+	            [1,10]
+             ],
+	DOOR_POS: [
+	            [11,2],
+	            [14,12],
+	            [13,2],
+	            [8,6],
+	            [5,2],
+	            [7,2]
+              ],
 
-    GRASS_X: [
-        [0,1,2,3,4,5,11,12,13,14,15,0,1,2,3,4,5,11,12,13,14,15,0,1,2,3,4,5,11,12,13,14,15],
-        [11,12,13,14,15,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-        [5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,7,8,9,10,11,15,5,6,7,8,9,10,11,15,15,15,15,0,1,2,3,4,5,15,0,1,2,3,4,5,15],
-        [1,9,5],
-        [6,2,6,2,6,2]
-    ],
+	GRASS_X: [
+	            [10,11,12,10,11,12,10,11,12,10,11,12,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,0,1,2,3,4,5,6,7,8,9,10,11,12],
+	            [0,1,2,3,4,11,12,13,14,15,0,1,2,3,4,11,12,13,14,15,0,1,2,3,4,11,12,13,14,15],
+	            [11,12,13,14,15,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+	            [5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,7,8,9,10,11,15,5,6,7,8,9,10,11,15,15,15,15,0,1,2,3,4,5,15,0,1,2,3,4,5,15],
+	            [1,9,5],
+                [6,2,6,2,6,2]
+              ],
     GRASS_Y: [
-        [13,13,13,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15],
-        [3,3,3,3,3,4,4,4,4,4,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15],
-        [0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,10,11,12,12,12,12,12,12,12,13,13,13,13,13,13,13],
-        [7,7,11],
-        [3,4,5,6,7,8]
-    ],
+                [3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,13,13,13,13,13,13,13,13,13,13,13,13,13],
+                [13,13,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15],
+                [3,3,3,3,3,4,4,4,4,4,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15],
+                [0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,10,11,12,12,12,12,12,12,12,13,13,13,13,13,13,13],
+                [7,7,11],
+                [3,4,5,6,7,8]
+              ],
     STONE_X: [
-        [],
-        [],
-        [],
-        [3,4,5,6,7,0,2,8,10,0,1,2,3,4,6,7,8,9,10],
-        [0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,3,4,5,6,7,8]
-    ],
+                [],
+                [],
+                [],
+                [],
+                [3,4,5,6,7,0,2,8,10,0,1,2,3,4,6,7,8,9,10],
+                [0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,3,4,5,6,7,8]
+             ],
     STONE_Y: [
-        [],
-        [],
-        [],
-        [3,3,3,3,3,7,7,7,7,11,11,11,11,11,11,11,11,11,11],
-        [3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,8,11,11,11,11,11,11,11,11,11]
-    ],
+                [],
+                [],
+                [],
+                [],
+                [3,3,3,3,3,7,7,7,7,11,11,11,11,11,11,11,11,11,11],
+                [3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,8,11,11,11,11,11,11,11,11,11]
+             ],
 
     PLATFORMS_X: [],
     PLATFORMS_Y: [],
+
+    INIT_PLATFORMS_X: [
+                        [9,9,9,9,9,4,4,4,4,4],
+                        [],
+                        [],
+                        [],
+                        [],
+                        []
+                      ],
+    INIT_PLATFORMS_Y: [
+                        [3,4,5,6,7,8,9,10,11,12],
+                        [],
+                        [],
+                        [],
+                        [],
+                        []
+                      ],
+
 
 
     render : function() {
         "use strict";
 
         // check if final level is complete
-        if(LEVELS.CURRENT_LEVEL == LEVELS.HEIGHT.length){
+        if(LEVELS.CURRENT_LEVEL >= LEVELS.HEIGHT.length){
 
             PS.color(PS.ALL, PS.ALL, PLAYER.ACTIVE_COLOR);
             PS.borderColor(PS.ALL, PS.ALL, PLAYER.ACTIVE_COLOR);
             PS.gridColor(LEVELS.SKY_COLOR);
             PS.statusColor(LEVELS.GRASS_COLOR);
             PS.gridShadow(1, PS.COLOR_WHITE);
+
+            HUB.IN_HUB = false;
 
             PS.audioPlay("fx_tada");
 
@@ -120,14 +356,14 @@ var LEVELS = {
 
             // Set up grid
             PS.gridSize(LEVELS.WIDTH[LEVELS.CURRENT_LEVEL], LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]);
-            PS.gridColor(PLAYER.PLATFORM_COLOR);
+            PS.gridColor(LEVELS.GRID_BACKGROUND_COLOR);
             PS.data(PS.ALL, PS.ALL, 0);
             PS.color(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
             PS.border(PS.ALL, PS.ALL, 0);
 
             if(LEVELS.CURRENT_LEVEL == 0){
 
-                PS.statusText("WASD to move, Space bar to leave mark");
+                PS.statusText("WASD to move, Space bar to leave a mark");
             } else {
                 PS.statusText("Stick it!");
             }
@@ -164,6 +400,13 @@ var LEVELS = {
 
                         PS.color(LEVELS.PLATFORMS_X[m], LEVELS.PLATFORMS_Y[m], PLAYER.PLATFORM_COLOR);
                     }
+                }
+            }
+
+            if (LEVELS.INIT_PLATFORMS_X[LEVELS.CURRENT_LEVEL].length > 0){
+                for (var k = 0; k < LEVELS.INIT_PLATFORMS_X[LEVELS.CURRENT_LEVEL].length; k ++){
+
+                    PS.color(LEVELS.INIT_PLATFORMS_X[LEVELS.CURRENT_LEVEL][k], LEVELS.INIT_PLATFORMS_Y[LEVELS.CURRENT_LEVEL][k], PLAYER.PLATFORM_COLOR);
                 }
             }
 
@@ -209,9 +452,19 @@ var LEVELS = {
             LEVELS.PLATFORMS_X = [];
             LEVELS.PLATFORMS_Y = [];
 
-            LEVELS.CURRENT_LEVEL += 1;
+
             PLAYER.STUCK = false;
-            LEVELS.render();
+            PLAYER.POS_X = HUB.EXITED[0] + 1;
+            PLAYER.POS_Y = HUB.EXITED[1];
+            PLAYER.VELOCITY_X = 0;
+            PLAYER.VELOCITY_Y = 0;
+
+
+            HUB.loadHUB();
+            HUB.DOOR_TIMER = PS.timerStart(HUB.DOOR_FRAMES, HUB.checkDoor);
+            PS.data(PS.ALL, PS.ALL, 0);
+            PS.audioPlay("fx_powerup2");
+
         }
 
     }
@@ -219,19 +472,16 @@ var LEVELS = {
 
 var PLAYER = {
 
-    ACTIVE_COLOR: 0Xff9084,
-    PLATFORM_COLOR: 0Xffd1cd,
-    STUCK_BORDER_COLOR: 0xFF5148,
+	ACTIVE_COLOR: 0Xff9084,
+	PLATFORM_COLOR: 0Xffd1cd,
+	STUCK_BORDER_COLOR: 0xFF5148,
 
-    POS_X: 0,
-    POS_Y: 0,
+	POS_X: 1,
+	POS_Y: 8,
 
-    VELOCITY_X: 0,
+	VELOCITY_X: 0,
     VELOCITY_Y: 0,
 
-    // Platforms placed by the player
-    PLATFORMS_X: [],
-    PLATFORMS_Y: [],
 
     // Flag to change if the player sticks to the platforms
     STUCK: false,
@@ -301,6 +551,7 @@ var PLAYER = {
                     // Change color of new position
                     PLAYER.render();
 
+
                 }
 
                 // check if the player is on a door bead
@@ -347,6 +598,10 @@ var PLAYER = {
 
                 }
             }
+        }
+        // Camera movement
+        if(HUB.IN_HUB == true){
+            HUB.moveCameraX();
         }
 
     },
@@ -437,6 +692,10 @@ var PLAYER = {
                 }
             }
         }
+        // Camera movement
+        if(HUB.IN_HUB == true){
+            HUB.moveCameraY();
+        }
 
     },
 
@@ -448,6 +707,7 @@ var PLAYER = {
         if((PLAYER.POS_Y + 1) < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]) {
 
             if ((PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == LEVELS.GRASS_COLOR) || (PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == PLAYER.PLATFORM_COLOR) || (PS.color(PLAYER.POS_X, (PLAYER.POS_Y + 1)) == LEVELS.STONE_COLOR)) {
+
 
                 for (var m = 0; m < 3; m++) {
 
@@ -612,43 +872,49 @@ var PLAYER = {
     lookAroundPlatform : function () {
         "use strict";
 
-        for (var i = -1; i < 2; i += 2) {
+        if(PLAYER.POS_X == LEVELS.P_START[LEVELS.CURRENT_LEVEL][0] && PLAYER.POS_Y == LEVELS.P_START[LEVELS.CURRENT_LEVEL][1] && HUB.IN_HUB == false){
 
-            // Check if in grid
-            if ((PLAYER.POS_X + i) >= 0 && (PLAYER.POS_X + i) < LEVELS.WIDTH[LEVELS.CURRENT_LEVEL]) {
+            return false
+        } else {
 
-                var current_x = PLAYER.POS_X + i; // Store current x that is being checked
+            for (var i = -1; i < 2; i += 2) {
 
-                if (PS.color(current_x, PLAYER.POS_Y) == PLAYER.PLATFORM_COLOR) {
+                // Check if in grid
+                if ((PLAYER.POS_X + i) >= 0 && (PLAYER.POS_X + i) < LEVELS.WIDTH[LEVELS.CURRENT_LEVEL]) {
 
-                    return true;
-                }
+                    var current_x = PLAYER.POS_X + i; // Store current x that is being checked
 
-                else if (PS.color(current_x, PLAYER.POS_Y) == LEVELS.GRASS_COLOR) {
+                    if (PS.color(current_x, PLAYER.POS_Y) == PLAYER.PLATFORM_COLOR) {
 
-                    return true;
-                }
-            }
-        }
+                        return true;
+                    }
 
-        for (var j = -1; j < 2; j += 2) {
+                    else if (PS.color(current_x, PLAYER.POS_Y) == LEVELS.GRASS_COLOR) {
 
-            // Check if in grid
-            if ((PLAYER.POS_Y + j) >= 0 && (PLAYER.POS_Y + j) < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]) {
-
-                var current_y = PLAYER.POS_Y + j; // Store current y that is being checked
-
-                if (PS.color(PLAYER.POS_X, current_y) == PLAYER.PLATFORM_COLOR) {
-
-                    return true;
-                }
-                else if (PS.color(PLAYER.POS_X, current_y) == LEVELS.GRASS_COLOR) {
-
-                    return true;
+                        return true;
+                    }
                 }
             }
+
+            for (var j = -1; j < 2; j += 2) {
+
+                // Check if in grid
+                if ((PLAYER.POS_Y + j) >= 0 && (PLAYER.POS_Y + j) < LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]) {
+
+                    var current_y = PLAYER.POS_Y + j; // Store current y that is being checked
+
+                    if (PS.color(PLAYER.POS_X, current_y) == PLAYER.PLATFORM_COLOR) {
+
+                        return true;
+                    }
+                    else if (PS.color(PLAYER.POS_X, current_y) == LEVELS.GRASS_COLOR) {
+
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
-        return false;
 
     },
 
@@ -656,7 +922,7 @@ var PLAYER = {
         "use strict";
 
         // Check if in the player fell into the abyss
-        if((PLAYER.POS_Y + 1) == LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL]) {
+        if((PLAYER.POS_Y + 1) == LEVELS.HEIGHT[LEVELS.CURRENT_LEVEL] && HUB.IN_HUB == false) {
 
             PS.audioPlay("fx_bloink");
 
@@ -669,11 +935,17 @@ var PLAYER = {
 
             PLAYER.moveY();
 
+            if(HUB.IN_HUB){
+
+                HUB.moveCameraY();
+            }
+
         } else {
 
             PLAYER.VELOCITY_Y = 0;
 
         }
+        PLAYER.render();
     }
 
 };
@@ -681,17 +953,18 @@ var PLAYER = {
 
 
 PS.init = function( system, options ) {
-    "use strict"; // Do not remove this directive!
+	"use strict"; // Do not remove this directive!
 
-    // Uncomment the following code line
-    // to verify operation:
+	// Uncomment the following code line
+	// to verify operation:
 
-    //PS.debug( "PS.init() called\n" );
+	//PS.debug( "PS.init() called\n" );
 
     PS.statusText( "Stick It!" );
 
 
-    LEVELS.render();
+    //LEVELS.render();
+    HUB.loadHUB();
 
     // Audio
     PS.audioLoad("fx_tada");
@@ -700,10 +973,12 @@ PS.init = function( system, options ) {
     PS.audioLoad("xylo_a4");
     PS.audioLoad("xylo_bb4");
     PS.audioLoad("perc_bongo_low");
+    PS.audioLoad("fx_powerup2");
 
     // Timers
     PLAYER.GRAVITY_TIMER = PS.timerStart(PLAYER.GRAVITY_FRAMES, PLAYER.gravity);
     LEVELS.END_TIMER = PS.timerStart(LEVELS.END_FRAMES, LEVELS.end);
+    HUB.DOOR_TIMER = PS.timerStart(HUB.DOOR_FRAMES, HUB.checkDoor);
 
 };
 
@@ -722,14 +997,19 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.touch() event handler:
 
 /*
+
 PS.touch = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line
 	// to inspect x/y parameters:
+
 	// PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
+
 	// Add code here for mouse clicks/touches
 	// over a bead.
 };
+
 */
 
 /*
@@ -745,12 +1025,17 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.release() event handler:
 
 /*
+
 PS.release = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line to inspect x/y parameters:
+
 	// PS.debug( "PS.release() @ " + x + ", " + y + "\n" );
+
 	// Add code here for when the mouse button/touch is released over a bead.
 };
+
 */
 
 /*
@@ -766,12 +1051,17 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.enter() event handler:
 
 /*
+
 PS.enter = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line to inspect x/y parameters:
+
 	// PS.debug( "PS.enter() @ " + x + ", " + y + "\n" );
+
 	// Add code here for when the mouse cursor/touch enters a bead.
 };
+
 */
 
 /*
@@ -787,12 +1077,17 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.exit() event handler:
 
 /*
+
 PS.exit = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line to inspect x/y parameters:
+
 	// PS.debug( "PS.exit() @ " + x + ", " + y + "\n" );
+
 	// Add code here for when the mouse cursor/touch exits a bead.
 };
+
 */
 
 /*
@@ -805,12 +1100,17 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.exitGrid() event handler:
 
 /*
+
 PS.exitGrid = function( options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line to verify operation:
+
 	// PS.debug( "PS.exitGrid() called\n" );
+
 	// Add code here for when the mouse cursor/touch moves off the grid.
 };
+
 */
 
 /*
@@ -838,11 +1138,11 @@ PS.keyDown = function( key, shift, ctrl, options ) {
     if (key == 97 || key == 1005) {
 
         // Set velocity
-
         PLAYER.VELOCITY_X = -1;
 
         // Move
         PLAYER.moveX();
+
     }
 
     // D key, right arrow
@@ -858,6 +1158,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
     // W key, up arrow
     if (key == 119 || key == 1006) {
 
+
         if(PLAYER.STUCK == true){
 
             //bug fix
@@ -869,6 +1170,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
             // Move
             PLAYER.moveY();
 
+
         } else {
 
             PLAYER.jump();
@@ -877,7 +1179,6 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 
     // S key, down arrow
     if (key == 115 || key == 1008) {
-
 
         // Set velocity
         PLAYER.VELOCITY_Y = 1;
@@ -889,22 +1190,46 @@ PS.keyDown = function( key, shift, ctrl, options ) {
     // Space key
     if (key == 32) {
 
+
         if(PLAYER.lookAroundPlatform()) {
+
 
             // Create a platform on player position
             PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.PLATFORM_COLOR);
             PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
 
-            // Put platform coordinates in the array
-            LEVELS.PLATFORMS_X.push(PLAYER.POS_X);
-            LEVELS.PLATFORMS_Y.push(PLAYER.POS_Y);
+            if(HUB.IN_HUB == true){
+
+                HUB.PLATFORMS_X.push(HUB.left + PLAYER.POS_X);
+                HUB.PLATFORMS_Y.push(HUB.top + PLAYER.POS_Y);
+
+            } else {
+
+                // Put platform coordinates in the array
+                LEVELS.PLATFORMS_X.push(PLAYER.POS_X);
+                LEVELS.PLATFORMS_Y.push(PLAYER.POS_Y);
+            }
 
             // Play sound
             PS.audioPlay("fx_tick");
 
-            // Place player on initial position
-            PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
-            PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
+            // Place player on created platform
+            if(PS.color(PLAYER.POS_X, PLAYER.POS_Y - 1) == LEVELS.SKY_COLOR && PLAYER.POS_Y > 1) {
+
+                PLAYER.POS_Y -= 1;
+
+            } else {
+
+                // Place player on initial position
+                PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
+                PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
+            }
+
+            // Hub world
+            if(HUB.IN_HUB == true){
+
+                HUB.moveCameraY();
+            }
 
             PLAYER.STUCK = false;
             PLAYER.render();
@@ -929,9 +1254,9 @@ This function doesn't have to do anything. Any value returned is ignored.
 
 
 PS.keyUp = function( key, shift, ctrl, options ) {
-    "use strict"; // Do not remove this directive!
+	"use strict"; // Do not remove this directive!
 
-    // Uncomment the following code line to inspect first three parameters:
+	// Uncomment the following code line to inspect first three parameters:
 
     //PS.debug( "PS.keyUp(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
 
@@ -976,16 +1301,21 @@ NOTE: Currently, only mouse wheel events are reported, and only when the mouse c
 // UNCOMMENT the following code BLOCK to expose the PS.input() event handler:
 
 /*
+
 PS.input = function( sensors, options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code lines to inspect first parameter:
+
 //	 var device = sensors.wheel; // check for scroll wheel
 //
 //	 if ( device ) {
 //	   PS.debug( "PS.input(): " + device + "\n" );
 //	 }
+
 	// Add code here for when an input event is detected.
 };
+
 */
 
 /*
@@ -999,10 +1329,15 @@ NOTE: This event is generally needed only by applications utilizing networked te
 // UNCOMMENT the following code BLOCK to expose the PS.shutdown() event handler:
 
 /*
+
 PS.shutdown = function( options ) {
 	"use strict"; // Do not remove this directive!
+
 	// Uncomment the following code line to verify operation:
+
 	// PS.debug( "“Dave. My mind is going. I can feel it.”\n" );
+
 	// Add code here to tidy up when Perlenspiel is about to close.
 };
+
 */
