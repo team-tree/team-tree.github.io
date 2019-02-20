@@ -1,32 +1,28 @@
 /*
 game.js for Perlenspiel 3.3.x
 Last revision: 2018-10-14 (BM)
-
 Perlenspiel is a scheme by Professor Moriarty (bmoriarty@wpi.edu).
 This version of Perlenspiel (3.3.x) is hosted at <https://ps3.perlenspiel.net>
 Perlenspiel is Copyright © 2009-18 Worcester Polytechnic Institute.
 This file is part of the standard Perlenspiel 3.3.x devkit distribution.
-
 Perlenspiel is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 Perlenspiel is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU Lesser General Public License for more details.
-
 You may have received a copy of the GNU Lesser General Public License
 along with the Perlenspiel devkit. If not, see <http://www.gnu.org/licenses/>.
 */
 
 var HUB  = {
 
-	GRID_HEIGHT: 16,
-	GRID_LENGTH: 16,
-	IN_HUB: false,
-	IMAGE: "",
+    GRID_HEIGHT: 16,
+    GRID_LENGTH: 16,
+    IN_HUB: false,
+    IMAGE: "",
 
     // Start position in the hub
     left: 0,
@@ -45,7 +41,7 @@ var HUB  = {
     DOOR_TIMER: "",
     DOOR_FRAMES: 5,
 
-	loadHUB : function () {
+    loadHUB : function () {
         "use strict";
 
         //bug fix
@@ -203,124 +199,119 @@ var HUB  = {
         }
     }
 
-/*
-    centerCamera : function (x, y) {
-        "use strict";
-
-        if(x > 8 && x <= 24){
-
-            HUB.left = x - 8;
-            HUB.width = x + 8;
-        } else if(x > 24){
-
-            HUB.left = 16;
-            HUB.width = 31;
-
-        } else {
-            HUB.left = 0;
-            HUB.width = 16;
+    /*
+        centerCamera : function (x, y) {
+            "use strict";
+            if(x > 8 && x <= 24){
+                HUB.left = x - 8;
+                HUB.width = x + 8;
+            } else if(x > 24){
+                HUB.left = 16;
+                HUB.width = 31;
+            } else {
+                HUB.left = 0;
+                HUB.width = 16;
+            }
+            if(y < 29 && y > 8){
+                HUB.top = y - 8;
+                HUB.height = y + 8;
+            } else {
+                HUB.top = 21;
+                HUB.height = 36;
+            }
         }
-
-        if(y < 29 && y > 8){
-            HUB.top = y - 8;
-            HUB.height = y + 8;
-        } else {
-            HUB.top = 21;
-            HUB.height = 36;
-        }
-    }
-    */
+        */
 
 };
 
 var LEVELS = {
 
     GRID_BACKGROUND_COLOR: 0xFFC8B6,
-	GRASS_COLOR: 0X35c74c,
-	SKY_COLOR: 0xa6fff6,
-	DOOR_COLOR: 0X000000,
-	DOORFRAME_COLOR: 0Xfff83f,
-	STONE_COLOR: 0x7F7F7F,
+    GRASS_COLOR: 0X35c74c,
+    SKY_COLOR: 0xa6fff6,
+    DOOR_COLOR: 0X000000,
+    DOORFRAME_COLOR: 0Xfff83f,
+    STONE_COLOR: 0x7F7F7F,
 
-	CURRENT_LEVEL: 0,
+    CURRENT_LEVEL: 0,
 
-	// Timers
-	END_TIMER: "",
-	END_FRAMES: 10,
+    // Timers
+    END_TIMER: "",
+    END_FRAMES: 10,
 
     WIDTH: [13,16,16,16,11,9],
-	HEIGHT: [14,16,16,14,12,12],
+    HEIGHT: [14,16,16,14,12,12],
 
-	// x and y values
-	P_START: [
-	            [1,12],
-	            [2,12],
-	            [3,13],
-	            [3,11],
-	            [1,10],
-	            [1,10]
-             ],
-	DOOR_POS: [
-	            [11,2],
-	            [14,12],
-	            [13,2],
-	            [8,6],
-	            [5,2],
-	            [7,2]
-              ],
+    // x and y values
+    P_START: [
+        [1,12],
+        [2,12],
+        [3,13],
+        [3,11],
+        [1,10],
+        [1,10]
+    ],
+    DOOR_POS: [
+        [11,2],
+        [14,12],
+        [13,2],
+        [8,6],
+        [5,2],
+        [7,2]
+    ],
 
-	GRASS_X: [
-	            [10,11,12,10,11,12,10,11,12,10,11,12,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,0,1,2,3,4,5,6,7,8,9,10,11,12],
-	            [0,1,2,3,4,11,12,13,14,15,0,1,2,3,4,11,12,13,14,15,0,1,2,3,4,11,12,13,14,15],
-	            [11,12,13,14,15,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-	            [5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,7,8,9,10,11,15,5,6,7,8,9,10,11,15,15,15,15,0,1,2,3,4,5,15,0,1,2,3,4,5,15],
-	            [1,9,5],
-                [6,2,6,2,6,2]
-              ],
+    GRASS_X: [
+        [10,11,12,10,11,12,10,11,12,10,11,12,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,5,6,7,8,9,10,11,12,0,1,2,3,4,5,6,7,8,9,10,11,12],
+        [0,1,2,3,4,11,12,13,14,15,0,1,2,3,4,11,12,13,14,15,0,1,2,3,4,11,12,13,14,15],
+        [11,12,13,14,15,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+        [5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,15,5,6,7,8,9,10,11,15,5,6,7,8,9,10,11,15,15,15,15,0,1,2,3,4,5,15,0,1,2,3,4,5,15],
+        [1,9,5],
+        [6,2,6,2,6,2]
+    ],
     GRASS_Y: [
-                [3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,13,13,13,13,13,13,13,13,13,13,13,13,13],
-                [13,13,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15],
-                [3,3,3,3,3,4,4,4,4,4,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15],
-                [0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,10,11,12,12,12,12,12,12,12,13,13,13,13,13,13,13],
-                [7,7,11],
-                [3,4,5,6,7,8]
-              ],
+        [3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,13,13,13,13,13,13,13,13,13,13,13,13,13],
+        [13,13,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15],
+        [3,3,3,3,3,4,4,4,4,4,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15],
+        [0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,10,11,12,12,12,12,12,12,12,13,13,13,13,13,13,13],
+        [7,7,11],
+        [3,4,5,6,7,8]
+    ],
     STONE_X: [
-                [],
-                [],
-                [],
-                [],
-                [3,4,5,6,7,0,2,8,10,0,1,2,3,4,6,7,8,9,10],
-                [0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,3,4,5,6,7,8]
-             ],
+        [],
+        [],
+        [],
+        [],
+        [3,4,5,6,7,0,2,8,10,0,1,2,3,4,6,7,8,9,10],
+        [0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,7,8,0,1,6,7,8,0,1,2,3,4,5,6,7,8]
+    ],
     STONE_Y: [
-                [],
-                [],
-                [],
-                [],
-                [3,3,3,3,3,7,7,7,7,11,11,11,11,11,11,11,11,11,11],
-                [3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,8,11,11,11,11,11,11,11,11,11]
-             ],
+        [],
+        [],
+        [],
+        [],
+        [3,3,3,3,3,7,7,7,7,11,11,11,11,11,11,11,11,11,11],
+        [3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,8,11,11,11,11,11,11,11,11,11]
+    ],
 
     PLATFORMS_X: [],
     PLATFORMS_Y: [],
 
     INIT_PLATFORMS_X: [
-                        [9,9,9,9,9,4,4,4,4,4],
-                        [],
-                        [],
-                        [],
-                        [],
-                        []
-                      ],
+        [9,9,9,9,9,4,4,4,4,4],
+        [],
+        [],
+        [],
+        [],
+        []
+    ],
     INIT_PLATFORMS_Y: [
-                        [3,4,5,6,7,8,9,10,11,12],
-                        [],
-                        [],
-                        [],
-                        [],
-                        []
-                      ],
+        [3,4,5,6,7,8,9,10,11,12],
+        [],
+        [],
+        [],
+        [],
+        []
+    ],
 
 
 
@@ -472,14 +463,14 @@ var LEVELS = {
 
 var PLAYER = {
 
-	ACTIVE_COLOR: 0Xff9084,
-	PLATFORM_COLOR: 0Xffd1cd,
-	STUCK_BORDER_COLOR: 0xFF5148,
+    ACTIVE_COLOR: 0Xff9084,
+    PLATFORM_COLOR: 0Xffd1cd,
+    STUCK_BORDER_COLOR: 0xFF5148,
 
-	POS_X: 1,
-	POS_Y: 8,
+    POS_X: 1,
+    POS_Y: 8,
 
-	VELOCITY_X: 0,
+    VELOCITY_X: 0,
     VELOCITY_Y: 0,
 
 
@@ -953,12 +944,12 @@ var PLAYER = {
 
 
 PS.init = function( system, options ) {
-	"use strict"; // Do not remove this directive!
+    "use strict"; // Do not remove this directive!
 
-	// Uncomment the following code line
-	// to verify operation:
+    // Uncomment the following code line
+    // to verify operation:
 
-	//PS.debug( "PS.init() called\n" );
+    //PS.debug( "PS.init() called\n" );
 
     PS.statusText( "Stick It!" );
 
@@ -997,19 +988,14 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.touch() event handler:
 
 /*
-
 PS.touch = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line
 	// to inspect x/y parameters:
-
 	// PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
-
 	// Add code here for mouse clicks/touches
 	// over a bead.
 };
-
 */
 
 /*
@@ -1025,17 +1011,12 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.release() event handler:
 
 /*
-
 PS.release = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to inspect x/y parameters:
-
 	// PS.debug( "PS.release() @ " + x + ", " + y + "\n" );
-
 	// Add code here for when the mouse button/touch is released over a bead.
 };
-
 */
 
 /*
@@ -1051,17 +1032,12 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.enter() event handler:
 
 /*
-
 PS.enter = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to inspect x/y parameters:
-
 	// PS.debug( "PS.enter() @ " + x + ", " + y + "\n" );
-
 	// Add code here for when the mouse cursor/touch enters a bead.
 };
-
 */
 
 /*
@@ -1077,17 +1053,12 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.exit() event handler:
 
 /*
-
 PS.exit = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to inspect x/y parameters:
-
 	// PS.debug( "PS.exit() @ " + x + ", " + y + "\n" );
-
 	// Add code here for when the mouse cursor/touch exits a bead.
 };
-
 */
 
 /*
@@ -1100,17 +1071,12 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.exitGrid() event handler:
 
 /*
-
 PS.exitGrid = function( options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to verify operation:
-
 	// PS.debug( "PS.exitGrid() called\n" );
-
 	// Add code here for when the mouse cursor/touch moves off the grid.
 };
-
 */
 
 /*
@@ -1254,9 +1220,9 @@ This function doesn't have to do anything. Any value returned is ignored.
 
 
 PS.keyUp = function( key, shift, ctrl, options ) {
-	"use strict"; // Do not remove this directive!
+    "use strict"; // Do not remove this directive!
 
-	// Uncomment the following code line to inspect first three parameters:
+    // Uncomment the following code line to inspect first three parameters:
 
     //PS.debug( "PS.keyUp(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
 
@@ -1301,21 +1267,16 @@ NOTE: Currently, only mouse wheel events are reported, and only when the mouse c
 // UNCOMMENT the following code BLOCK to expose the PS.input() event handler:
 
 /*
-
 PS.input = function( sensors, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code lines to inspect first parameter:
-
 //	 var device = sensors.wheel; // check for scroll wheel
 //
 //	 if ( device ) {
 //	   PS.debug( "PS.input(): " + device + "\n" );
 //	 }
-
 	// Add code here for when an input event is detected.
 };
-
 */
 
 /*
@@ -1329,15 +1290,10 @@ NOTE: This event is generally needed only by applications utilizing networked te
 // UNCOMMENT the following code BLOCK to expose the PS.shutdown() event handler:
 
 /*
-
 PS.shutdown = function( options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to verify operation:
-
 	// PS.debug( "“Dave. My mind is going. I can feel it.”\n" );
-
 	// Add code here to tidy up when Perlenspiel is about to close.
 };
-
 */
