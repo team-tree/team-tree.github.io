@@ -1104,6 +1104,7 @@ PS.init = function( system, options ) {
     PS.audioLoad("perc_bongo_low");
     PS.audioLoad("fx_powerup2");
     PS.audioLoad("fx_bucket");
+    PS.audioLoad("background_music", {autoplay: true, path: "audio/", loop: true, fileTypes: ["mp3"]}); // song from Sonic Unleashed. Copywrited by Sega, link to the audio: https://www.youtube.com/watch?v=x4QyJjMOEcY&t=
 
     // Timers
     PLAYER.GRAVITY_TIMER = PS.timerStart(PLAYER.GRAVITY_FRAMES, PLAYER.gravity);
