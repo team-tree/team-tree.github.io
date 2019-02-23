@@ -25,6 +25,8 @@ var HUB_IMAGE = null;
 
 var HUB  = {
 
+    BG_COLOR: 0x76d5f7,
+
 	GRID_HEIGHT: 16,
 	GRID_LENGTH: 16,
 	IN_HUB: false,
@@ -75,12 +77,29 @@ var HUB  = {
         PS.gridSize(HUB.GRID_LENGTH, HUB.GRID_HEIGHT);
         PS.border(PS.ALL, PS.ALL, 0);
         PS.data(PS.ALL, PS.ALL, 0);
+        PS.gridColor(HUB.BG_COLOR);
 
         // renders image to grid
         var flag = PS.imageBlit(HUB_IMAGE, 0, 0, HUB);
 
         HUB.IN_HUB = true;
         HUB.EXITED = [];
+
+        // tutorial text
+        for (var l = 0; l < HUB.DOORS_DONE_X.length; l += 1) {
+
+            if(HUB.DOORS_DONE_X.length < 10) {
+
+                if (HUB.DOORS_DONE_X[l] == 4 && (HUB.DOORS_DONE_Y[l] == 37 || HUB.DOORS_DONE_Y[l] == 36)) {
+
+                    PS.statusText("Press space bar to leave a mark");
+                }
+
+            } else{
+
+                PS.statusText("Stick it!");
+            }
+        }
 
 
         if (flag == true){
@@ -119,6 +138,8 @@ var HUB  = {
             }
         }
         if(HUB.DOORS_DONE_X.length == 27){
+
+            PS.statusText("The last door is now open");
 
             for(var m = 0; m < 7; m += 1){
 
@@ -278,7 +299,7 @@ var LEVELS = {
                 [1,1],   // falling
                 [8,1],   // sphere
 	            [1,1],   // slingshot
-	            [1,10]  // right and up
+	            [1,11]  // right and up
              ],
 	DOOR_POS: [
 	            [11,2],
@@ -381,15 +402,15 @@ var LEVELS = {
         // check if final level is complete
         if(LEVELS.CURRENT_LEVEL >= LEVELS.HEIGHT.length){
 
-            PS.color(PS.ALL, PS.ALL, PLAYER.ACTIVE_COLOR);
-            PS.borderColor(PS.ALL, PS.ALL, PLAYER.ACTIVE_COLOR);
-            PS.gridColor(LEVELS.SKY_COLOR);
-            PS.statusColor(LEVELS.GRASS_COLOR);
-            PS.gridShadow(1, PS.COLOR_WHITE);
+            PS.color(PS.ALL, PS.ALL, HUB.BG_COLOR);
+            PS.borderColor(PS.ALL, PS.ALL, 0);
+            PS.gridColor(HUB.BG_COLOR);
+            PS.statusText("Build upon yourself and step into your future");
 
             HUB.IN_HUB = false;
 
-            PS.audioPlay("fx_tada");
+            //PS.audioStop();
+            PS.audioPlay("l_piano_g6");
 
             if(PLAYER.GRAVITY_TIMER != "") {
 
@@ -413,11 +434,19 @@ var LEVELS = {
             PS.color(PS.ALL, PS.ALL, LEVELS.SKY_COLOR);
             PS.border(PS.ALL, PS.ALL, 0);
 
-            if(LEVELS.CURRENT_LEVEL == 0  || LEVELS.CURRENT_LEVEL == 1){
+            if(LEVELS.CURRENT_LEVEL == 0){
 
-                PS.statusText("WASD to move, Space bar to leave a mark");
+                PS.statusText("Stick yourself to pink blocks");
 
-            } else {
+            }
+
+            // tutorial for the second level
+            else if(LEVELS.CURRENT_LEVEL == 1){
+
+                PS.statusText("Move into pink blocks to destroy them");
+            }
+
+            else {
 
                 PS.statusText("Stick it!");
             }
@@ -1090,13 +1119,14 @@ PS.init = function( system, options ) {
 
 	//PS.debug( "PS.init() called\n" );
 
-    PS.statusText( "Stick It!" );
+    PS.statusText( "Use WASD or arrow keys to move" );
 
 
     HUB.loadHUB();
 
+
     // Audio
-    PS.audioLoad("fx_tada");
+    PS.audioLoad("l_piano_g6");
     PS.audioLoad("fx_tick");
     PS.audioLoad("fx_squish");
     PS.audioLoad("xylo_a4");
