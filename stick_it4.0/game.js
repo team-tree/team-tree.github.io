@@ -30,6 +30,7 @@ var HUB  = {
 	GRID_HEIGHT: 16,
 	GRID_LENGTH: 16,
 	IN_HUB: false,
+	GAME_DONE: false,
 
     // Start position in the hub
     left: 0,
@@ -399,6 +400,7 @@ var LEVELS = {
     render : function() {
         "use strict";
 
+
         // check if final level is complete
         if(LEVELS.CURRENT_LEVEL >= LEVELS.HEIGHT.length){
 
@@ -406,10 +408,12 @@ var LEVELS = {
             PS.borderColor(PS.ALL, PS.ALL, 0);
             PS.gridColor(HUB.BG_COLOR);
             PS.statusText("Build upon yourself and step into your future");
-
+            HUB.GAME_DONE = true;
             HUB.IN_HUB = false;
 
-            //PS.audioStop();
+
+
+            PS.audioFade(BACKGROUND_MUSIC, 1, 0, 1500);
             PS.audioPlay("l_piano_g6");
 
             if(PLAYER.GRAVITY_TIMER != "") {
@@ -420,6 +424,10 @@ var LEVELS = {
             if(PLAYER.STUCK_TIMER != "") {
 
                 PS.timerStop(PLAYER.STUCK_TIMER);
+            }
+            if(HUB.DOOR_TIMER != "") {
+
+                PS.timerStop(HUB.DOOR_TIMER);
             }
 
             PS.timerStop(LEVELS.END_TIMER);
@@ -595,16 +603,19 @@ var PLAYER = {
     render : function() {
         "use strict";
 
-        PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.ACTIVE_COLOR);
+        if(!HUB.GAME_DONE) {
 
-        if(PLAYER.STUCK == true){
+            PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.ACTIVE_COLOR);
 
-            PS.border(PLAYER.POS_X, PLAYER.POS_Y, 3);
-            PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.STUCK_BORDER_COLOR);
-        }
-        else if(PLAYER.STUCK == false){
+            if (PLAYER.STUCK == true) {
 
-            PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
+                PS.border(PLAYER.POS_X, PLAYER.POS_Y, 3);
+                PS.borderColor(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.STUCK_BORDER_COLOR);
+            }
+            else if (PLAYER.STUCK == false) {
+
+                PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
+            }
         }
 
     },
@@ -1109,6 +1120,8 @@ var PLAYER = {
 
 };
 
+var BACKGROUND_MUSIC = "";
+
 
 
 PS.init = function( system, options ) {
@@ -1124,6 +1137,10 @@ PS.init = function( system, options ) {
 
     HUB.loadHUB();
 
+    var musicLoader = function ( data ) {
+        BACKGROUND_MUSIC = data.channel; // save ID
+    };
+
 
     // Audio
     PS.audioLoad("l_piano_g6");
@@ -1134,7 +1151,7 @@ PS.init = function( system, options ) {
     PS.audioLoad("perc_bongo_low");
     PS.audioLoad("fx_powerup2");
     PS.audioLoad("fx_bucket");
-    PS.audioLoad("background_music", {autoplay: true, path: "audio/", loop: true, fileTypes: ["mp3"]}); // song from Sonic Unleashed. Copywrited by Sega, link to the audio: https://www.youtube.com/watch?v=x4QyJjMOEcY&t=
+    PS.audioLoad("background_music", {autoplay: true, lock: true, path: "audio/", loop: true, fileTypes: ["mp3"], onLoad: musicLoader}); // song from Kirby and the Rainbow Curse. Copyrighted by HAL Laboratory, link to the audio: https://www.youtube.com/watch?v=cmuZDJl8vQ8
 
     // Timers
     PLAYER.GRAVITY_TIMER = PS.timerStart(PLAYER.GRAVITY_FRAMES, PLAYER.gravity);
@@ -1351,61 +1368,63 @@ PS.keyDown = function( key, shift, ctrl, options ) {
     // Space key
     if (key == 32) {
 
+        if(!HUB.GAME_DONE) {
 
-        if(PLAYER.lookAroundPlatform()) {
-
-
-            // Create a platform on player position
-            PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.PLATFORM_COLOR);
-            PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
-
-            if(HUB.IN_HUB == true){
-
-                HUB.PLATFORMS_X.push(HUB.left + PLAYER.POS_X);
-                HUB.PLATFORMS_Y.push(HUB.top + PLAYER.POS_Y);
-
-            } else {
-
-                // Put platform coordinates in the array
-                LEVELS.PLATFORMS_X.push(PLAYER.POS_X);
-                LEVELS.PLATFORMS_Y.push(PLAYER.POS_Y);
-            }
+            if (PLAYER.lookAroundPlatform()) {
 
 
-            // Place player on created platform in hub world
-            if(HUB.IN_HUB){
+                // Create a platform on player position
+                PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.PLATFORM_COLOR);
+                PS.border(PLAYER.POS_X, PLAYER.POS_Y, 0);
 
-                if(PS.color(PLAYER.POS_X, PLAYER.POS_Y - 1) == LEVELS.SKY_COLOR && PLAYER.POS_Y > 1) {
+                if (HUB.IN_HUB == true) {
 
-                    // Play sound
-                    PS.audioPlay("fx_tick");
-                    PLAYER.POS_Y -= 1;
+                    HUB.PLATFORMS_X.push(HUB.left + PLAYER.POS_X);
+                    HUB.PLATFORMS_Y.push(HUB.top + PLAYER.POS_Y);
 
-                    PLAYER.render();
+                } else {
+
+                    // Put platform coordinates in the array
+                    LEVELS.PLATFORMS_X.push(PLAYER.POS_X);
+                    LEVELS.PLATFORMS_Y.push(PLAYER.POS_Y);
+                }
+
+
+                // Place player on created platform in hub world
+                if (HUB.IN_HUB) {
+
+                    if (PS.color(PLAYER.POS_X, PLAYER.POS_Y - 1) == LEVELS.SKY_COLOR && PLAYER.POS_Y > 1) {
+
+                        // Play sound
+                        PS.audioPlay("fx_tick");
+                        PLAYER.POS_Y -= 1;
+
+                        PLAYER.render();
+                    } else {
+
+                        // Play sound
+                        PS.audioPlay("fx_bucket");
+
+                        HUB.PLATFORMS_X.pop();
+                        HUB.PLATFORMS_Y.pop();
+                        PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.ACTIVE_COLOR);
+                        PLAYER.render();
+                    }
+
+                    HUB.moveCameraY();
+
+
                 } else {
 
                     // Play sound
-                    PS.audioPlay("fx_bucket");
+                    PS.audioPlay("fx_tick");
 
-                    HUB.PLATFORMS_X.pop();
-                    HUB.PLATFORMS_Y.pop();
-                    PS.color(PLAYER.POS_X, PLAYER.POS_Y, PLAYER.ACTIVE_COLOR);
+                    // Place player on initial position
+                    PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
+                    PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
+                    PLAYER.STUCK = false;
                     PLAYER.render();
                 }
-
-                HUB.moveCameraY();
-
-
-            } else {
-
-                // Play sound
-                PS.audioPlay("fx_tick");
-
-                // Place player on initial position
-                PLAYER.POS_X = LEVELS.P_START[LEVELS.CURRENT_LEVEL][0];
-                PLAYER.POS_Y = LEVELS.P_START[LEVELS.CURRENT_LEVEL][1];
-                PLAYER.STUCK = false;
-                PLAYER.render();
             }
         }
     }
