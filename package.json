@@ -1,0 +1,28 @@
+{
+  "name": "team-tree.github.io",
+  "version": "1.0.0",
+  "description": "test",
+  "main": "index.js",
+  "dependencies": {
+    "cypress": "^3.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cypress:open": "cypress open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/team-tree/team-tree.github.io.git"
+  },
+  "keywords": [
+    "perlenspiel"
+  ],
+  "author": "Cem Alemdar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/team-tree/team-tree.github.io/issues"
+  },
+  "homepage": "https://github.com/team-tree/team-tree.github.io"
+  
+}
